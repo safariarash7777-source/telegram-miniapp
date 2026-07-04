@@ -13,6 +13,7 @@ import {
 } from "./db";
 import { notifyAdminNewConsultation } from "./telegram";
 import { verifyTelegramInitData, parseTelegramUser, isInitDataExpired } from "./telegram-verify";
+import { getLivePrices } from "./price-service";
 
 export const appRouter = router({
   system: systemRouter,
@@ -262,13 +263,7 @@ export const appRouter = router({
   // ── Market Prices (proxy) ──────────────────────────────────────────────
   prices: router({
     getLive: publicProcedure.query(async () => {
-      try {
-        return await fetchLivePrices();
-      } catch (error) {
-        console.error("Failed to fetch live prices:", error);
-        // Return fallback data if API fails
-        return getFallbackPrices();
-      }
+      return await getLivePrices();
     }),
   }),
 });

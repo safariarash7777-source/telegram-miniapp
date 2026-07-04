@@ -3,22 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d1117" />
-    <title>آرش صفری · مشاور سرمایه‌گذاری</title>
+    <meta name="theme-color" content="#0D1F4A" />
+    <title>آرش صفری | مشاور سرمایه‌گذاری</title>
 
-    <!-- Vazirmatn Persian Font -->
+    <!-- Pelak Brand Font (self-hosted via CDN) -->
+    <style>
+      @font-face {
+        font-family: 'Pelak';
+        src: url('/manus-storage/Pelak-Bold_c6d514e8.woff2') format('woff2');
+        font-weight: 700;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Pelak';
+        src: url('/manus-storage/Pelak-ExtraBold_d276833a.woff2') format('woff2');
+        font-weight: 800;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Pelak';
+        src: url('/manus-storage/Pelak-Black_09ef6ce9.woff2') format('woff2');
+        font-weight: 900;
+        font-display: swap;
+      }
+      html { direction: rtl; background: #0D1F4A; }
+      body { margin: 0; font-family: 'Pelak', 'Vazirmatn', 'Tahoma', sans-serif; }
+    </style>
+
+    <!-- Vazirmatn for body text + Cormorant Garamond for decorative numbers + Inter for LTR -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Telegram WebApp SDK -->
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <style>
-      /* Prevent FOUC */
-      html { direction: rtl; background: #0d1117; }
-      body { margin: 0; font-family: 'Vazirmatn', 'Tahoma', sans-serif; }
-    </style>
   </head>
   <body>
     <div id="root"></div>

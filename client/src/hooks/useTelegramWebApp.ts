@@ -84,8 +84,8 @@ export function useTelegramWebApp(): TelegramWebAppState {
       twa.ready();
       twa.expand();
       try {
-        twa.setHeaderColor("#0d1117");
-        twa.setBackgroundColor("#0d1117");
+        twa.setHeaderColor("#0D1F4A");
+        twa.setBackgroundColor("#0D1F4A");
       } catch {}
     }
     setIsReady(true);

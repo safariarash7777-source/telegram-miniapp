@@ -48,3 +48,17 @@
 ## Secrets & Config
 - [x] TELEGRAM_BOT_TOKEN secret
 - [x] TELEGRAM_ADMIN_CHAT_ID secret (chat ID آرش صفری)
+
+## بازطراحی و بهبود (فاز ۲)
+- [x] رفع مشکل ورود - تغییر auth gate از isRegistered به isVerified
+- [x] صفحه ProfileSetup برای کاربران جدید (نام + شماره تماس)
+- [x] بازطراحی تم به navy/gold مشابه portfolio-platform
+- [x] اعمال فونت Pelak از هویت بصری برند
+- [x] داشبورد ۴ تب: طلا، سکه، ارز، حباب
+- [x] price-service.ts با caching 5 دقیقه و rate-limit handling
+- [x] محاسبه حباب سکه (امامی، نیم‌سکه، ربع‌سکه)
+- [x] نرخ تبدیل طلا (۱۸ عیار، ۲۴ عیار، مثقال)
+- [x] رفع خطای @apply badge-navy در Tailwind 4
+- [x] رفع timeout تست price.getLive با mock
+- [ ] Publish پروژه و تنظیم Webhook تلگرام
+- [ ] تنظیم Mini App URL در BotFather

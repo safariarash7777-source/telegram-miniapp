@@ -20,6 +20,21 @@ vi.mock("./db", () => ({
   deletePortfolioAsset: vi.fn(),
 }));
 
+// Mock price-service module
+vi.mock("./price-service", () => ({
+  getLivePrices: vi.fn().mockResolvedValue({
+    gold18: { price: 174627000, change: 2057000, changePercent: 1.19, isUp: true },
+    usd: { price: 1753950, change: 10950, changePercent: 0.63, isUp: true },
+    eur: { price: 2007600, change: 23100, changePercent: 1.16, isUp: true },
+    goldOunce: { price: 4175.38, change: 52.06, changePercent: 1.26, isUp: true },
+    coinEmami: { price: 2165000000, change: 25500000, changePercent: 1.19, isUp: true },
+    coinHalf: { price: 698580000, change: 8220000, changePercent: 1.19, isUp: true },
+    coinQuarter: { price: 384179400, change: 4525400, changePercent: 1.19, isUp: true },
+    updatedAt: new Date().toISOString(),
+    source: "live",
+  }),
+}));
+
 // Mock telegram module
 vi.mock("./telegram", () => ({
   notifyAdminNewConsultation: vi.fn().mockResolvedValue(true),
@@ -143,15 +158,19 @@ describe("consultation.submit", () => {
 describe("prices.getLive", () => {
   it("returns price data with required fields", async () => {
     const caller = appRouter.createCaller(createPublicCtx());
-    const result = await caller.prices.getLive();
+    const result = await caller.prices.getLive() as any;
 
-    expect(result).toHaveProperty("gold");
+    expect(result).toHaveProperty("gold18");
     expect(result).toHaveProperty("usd");
     expect(result).toHaveProperty("eur");
-    expect(result).toHaveProperty("bourse");
-    expect(result.gold).toHaveProperty("price");
-    expect(result.gold).toHaveProperty("change");
-    expect(result.gold).toHaveProperty("changePercent");
+    expect(result).toHaveProperty("coinEmami");
+    expect(result).toHaveProperty("coinHalf");
+    expect(result).toHaveProperty("coinQuarter");
+    expect(result).toHaveProperty("goldOunce");
+    expect(result.gold18).toHaveProperty("price");
+    expect(result.gold18).toHaveProperty("change");
+    expect(result.gold18).toHaveProperty("changePercent");
     expect(result).toHaveProperty("updatedAt");
+    expect(result).toHaveProperty("source");
   });
 });
