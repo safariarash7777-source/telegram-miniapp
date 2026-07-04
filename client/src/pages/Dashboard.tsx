@@ -172,13 +172,14 @@ export default function Dashboard() {
   };
 
   // Intrinsic coin price = gold18 price × weight × purity factor (no bubble)
-  // Emami: 8.133g × (24/18) × gold18_per_gram ≈ gold18 × 10.844
-  // Half: 4.0g × (24/18) × gold18_per_gram ≈ gold18 × 5.333
-  // Quarter: 2.0g × (24/18) × gold18_per_gram ≈ gold18 × 2.667
   const gold18Price = prices?.gold18?.price;
+  // Intrinsic coin price = gold18 (tomans/gram) × weight × purity factor (no bubble)
+  // Emami: 8.133g × (24/18) × gold18_per_gram ≈ gold18 × 10.844
+  // Half: 4.068g × (24/18) × gold18_per_gram ≈ gold18 × 5.424
+  // Quarter: 2.034g × (24/18) × gold18_per_gram ≈ gold18 × 2.712
   const intrinsicEmami = gold18Price ? Math.round(gold18Price * 10.844) : undefined;
-  const intrinsicHalf = gold18Price ? Math.round(gold18Price * 5.333) : undefined;
-  const intrinsicQuarter = gold18Price ? Math.round(gold18Price * 2.667) : undefined;
+  const intrinsicHalf = gold18Price ? Math.round(gold18Price * 5.424) : undefined;
+  const intrinsicQuarter = gold18Price ? Math.round(gold18Price * 2.712) : undefined;
 
   return (
     <div className="page-content" dir="rtl">
@@ -311,10 +312,11 @@ export default function Dashboard() {
               <PriceCard
                 label="طلای ۱۸ عیار"
                 value={fmt(prices?.gold18?.price)}
-                unit="ریال / گرم"
+                unit="تومان / گرم"
                 item={prices?.gold18}
                 isLoading={isLoading}
                 accentColor="var(--gold-soft)"
+                note={prices?.gold18?.source ? `منبع: ${prices.gold18.source}` : undefined}
               />
               <PriceCard
                 label="اونس جهانی"
@@ -330,9 +332,9 @@ export default function Dashboard() {
                 </p>
                 <div className="grid grid-cols-3 gap-3 text-center">
                   {[
-                    { label: "۱۸ عیار", val: prices?.gold18?.price, unit: "ریال/گرم" },
-                    { label: "۲۴ عیار", val: prices?.gold18?.price ? Math.round(prices.gold18.price * 24 / 18) : undefined, unit: "ریال/گرم" },
-                    { label: "مثقال", val: prices?.gold18?.price ? Math.round(prices.gold18.price * 4.608) : undefined, unit: "ریال" },
+                    { label: "۱۸ عیار", val: prices?.gold18?.price, unit: "تومان/گرم" },
+                    { label: "۲۴ عیار", val: prices?.gold18?.price ? Math.round(prices.gold18.price * 24 / 18) : undefined, unit: "تومان/گرم" },
+                    { label: "مثقال", val: prices?.gold18?.price ? Math.round(prices.gold18.price * 4.608) : undefined, unit: "تومان" },
                   ].map(item => (
                     <div key={item.label}>
                       <p className="text-[10px] mb-1" style={{ color: "var(--text-3)" }}>{item.label}</p>
@@ -357,7 +359,7 @@ export default function Dashboard() {
               <PriceCard
                 label="سکه امامی"
                 value={fmt(prices?.coinEmami?.price)}
-                unit="ریال"
+                unit="تومان"
                 item={prices?.coinEmami}
                 isLoading={isLoading}
                 accentColor="var(--gold-soft)"
@@ -365,7 +367,7 @@ export default function Dashboard() {
               <PriceCard
                 label="نیم‌سکه"
                 value={fmt(prices?.coinHalf?.price)}
-                unit="ریال"
+                unit="تومان"
                 item={prices?.coinHalf}
                 isLoading={isLoading}
                 accentColor="#FBB724"
@@ -373,18 +375,29 @@ export default function Dashboard() {
               <PriceCard
                 label="ربع‌سکه"
                 value={fmt(prices?.coinQuarter?.price)}
-                unit="ریال"
+                unit="تومان"
                 item={prices?.coinQuarter}
                 isLoading={isLoading}
                 accentColor="#F59E0B"
               />
+              <PriceCard
+                label="تمام پهلوی"
+                value={fmt((prices as any)?.coinPahlavi?.price)}
+                unit="تومان"
+                item={(prices as any)?.coinPahlavi}
+                isLoading={isLoading}
+                accentColor="#FBBF24"
+              />
               <div className="card-elevated p-4 flex flex-col justify-center">
-                <p className="text-xs font-bold mb-1" style={{ color: "var(--text-3)" }}>وزن سکه</p>
-                <div className="space-y-1 text-[11px]" style={{ color: "var(--text-2)" }}>
-                  <p>امامی: ۸.۱۳۳ گرم</p>
-                  <p>نیم‌سکه: ۴.۰۶۸ گرم</p>
-                  <p>ربع‌سکه: ۲.۰۳۴ گرم</p>
-                </div>
+                <p className="text-xs font-bold mb-1" style={{ color: "var(--text-3)" }}>آبشده نقد</p>
+                {isLoading ? (
+                  <div className="skeleton h-5 w-20 rounded" />
+                ) : (
+                  <p className="text-sm font-black tabular-nums" style={{ color: "var(--gold-soft)", direction: "ltr" }}>
+                    {fmt((prices as any)?.abshode?.price)}
+                  </p>
+                )}
+                <p className="text-[10px] mt-0.5" style={{ color: "var(--text-3)" }}>تومان</p>
               </div>
             </div>
           )}
@@ -395,7 +408,7 @@ export default function Dashboard() {
               <PriceCard
                 label="دلار آمریکا"
                 value={fmt(prices?.usd?.price)}
-                unit="ریال"
+                unit="تومان"
                 item={prices?.usd}
                 isLoading={isLoading}
                 accentColor="#93C5FD"
@@ -403,7 +416,7 @@ export default function Dashboard() {
               <PriceCard
                 label="یورو"
                 value={fmt(prices?.eur?.price)}
-                unit="ریال"
+                unit="تومان"
                 item={prices?.eur}
                 isLoading={isLoading}
                 accentColor="#A5B4FC"
@@ -463,6 +476,17 @@ export default function Dashboard() {
                   intrinsicPrice={intrinsicQuarter}
                   isLoading={isLoading}
                 />
+                <div
+                  className="rounded-xl p-3 text-xs mt-1"
+                  style={{
+                    background: "rgba(212,162,43,0.04)",
+                    border: "1px solid rgba(212,162,43,0.1)",
+                    color: "var(--text-3)",
+                  }}
+                >
+                  <p>ارزش ذاتی بر اساس قیمت طلای ۱۸ عیار و وزن استاندارد سکه محاسبه می‌شود.</p>
+                  <p className="mt-1">منبع قیمت: کانال تلگرام @tala_hajiabdollahi</p>
+                </div>
               </div>
             </div>
           )}
