@@ -14,7 +14,12 @@ interface TelegramContextValue {
     username?: string | null;
   } | null;
   isLoading: boolean;
+  /** کاربر هویت تلگرام دارد — gate اصلی ورود */
+  isVerified: boolean;
+  /** کاربر قبلاً نام و شماره را ثبت کرده */
   isRegistered: boolean;
+  /** کاربر جدید است و هنوز پروفایل کامل نکرده */
+  needsProfile: boolean;
   isTelegram: boolean;
   register: (name: string, phone: string) => Promise<void>;
   twa: ReturnType<typeof useTelegramWebApp>;
@@ -40,9 +45,17 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
   const telegramUser = twa.isTelegram ? twa.user : (import.meta.env.DEV ? DEV_MOCK_USER : null);
   const telegramId = telegramUser ? String(telegramUser.id) : null;
 
+  // ✅ کاربر هویت تلگرام دارد — این gate اصلی ورود است
+  const isVerified = !!telegramUser;
+
   const getUserQuery = trpc.telegramAuth.getUser.useQuery(
     { telegramId: telegramId ?? "" },
-    { enabled: !!telegramId, retry: 1 }
+    {
+      enabled: !!telegramId,
+      retry: 1,
+      // اگر DB در دسترس نبود، کاربر همچنان می‌تواند وارد شود
+      retryDelay: 1000,
+    }
   );
 
   const registerMutation = trpc.telegramAuth.registerUser.useMutation();
@@ -52,13 +65,24 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
       setRegisteredUser(getUserQuery.data as any);
       setIsLoading(false);
     } else if (getUserQuery.error) {
+      // ✅ حتی اگر DB خطا داد، کاربر می‌تواند وارد شود
+      console.warn("[TelegramContext] DB error, allowing entry anyway:", getUserQuery.error.message);
+      setIsLoading(false);
+    } else if (!telegramId) {
       setIsLoading(false);
     }
-  }, [getUserQuery.data, getUserQuery.error]);
+  }, [getUserQuery.data, getUserQuery.error, telegramId]);
 
+  // اگر telegramId نداشتیم، loading را false کن
   useEffect(() => {
     if (!telegramId) setIsLoading(false);
   }, [telegramId]);
+
+  // Timeout: بعد از ۳ ثانیه loading را false کن تا کاربر block نشود
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const register = async (name: string, phone: string) => {
     if (!telegramUser) throw new Error("No Telegram user");
@@ -73,13 +97,19 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     await getUserQuery.refetch();
   };
 
+  const isRegistered = !!registeredUser;
+  // کاربر جدید است اگر هویت تلگرام دارد اما هنوز ثبت نشده
+  const needsProfile = isVerified && !isRegistered && !getUserQuery.isLoading;
+
   return (
     <TelegramContext.Provider
       value={{
         telegramUser,
         registeredUser,
         isLoading,
-        isRegistered: !!registeredUser,
+        isVerified,
+        isRegistered,
+        needsProfile,
         isTelegram: twa.isTelegram,
         register,
         twa,

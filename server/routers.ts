@@ -145,10 +145,11 @@ export const appRouter = router({
   // ── Analyses ──────────────────────────────────────────────────────────
   analysis: router({
     list: publicProcedure
-      .input(z.object({ category: z.string().optional() }))
+      .input(z.object({ category: z.string().optional(), limit: z.number().optional() }))
       .query(async ({ input }) => {
         try {
-          return await getAnalyses(input.category);
+          const results = await getAnalyses(input.category);
+          return input.limit ? results.slice(0, input.limit) : results;
         } catch (error) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "خطا در دریافت تحلیل‌ها" });
         }

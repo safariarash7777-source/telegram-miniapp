@@ -1,267 +1,278 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useTelegram } from "@/contexts/TelegramContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
-import { MessageSquare, CheckCircle, Loader2 } from "lucide-react";
+import { MessageSquare, CheckCircle, Loader2, ChevronDown } from "lucide-react";
 
 const TOPICS = [
-  { value: "gold", label: "🥇 سرمایه‌گذاری در طلا" },
-  { value: "stock", label: "📈 بورس و سهام" },
-  { value: "currency", label: "💱 ارز و دلار" },
-  { value: "portfolio", label: "📊 طراحی پرتفوی" },
-  { value: "other", label: "💬 سایر موضوعات" },
+  { value: "gold", label: "طلا و سکه" },
+  { value: "stock", label: "بورس و سهام" },
+  { value: "currency", label: "ارز و دلار" },
+  { value: "portfolio", label: "مدیریت سبد" },
+  { value: "other", label: "سایر موارد" },
 ];
 
 const TIME_SLOTS = [
-  "۸:۰۰ - ۱۰:۰۰",
-  "۱۰:۰۰ - ۱۲:۰۰",
-  "۱۴:۰۰ - ۱۶:۰۰",
-  "۱۶:۰۰ - ۱۸:۰۰",
-  "۱۸:۰۰ - ۲۰:۰۰",
+  { value: "morning", label: "صبح (۸-۱۲)" },
+  { value: "afternoon", label: "بعدازظهر (۱۲-۱۷)" },
+  { value: "evening", label: "عصر (۱۷-۲۱)" },
 ];
 
 export default function Consultation() {
-  const { registeredUser, twa } = useTelegram();
+  const { registeredUser, telegramUser, twa } = useTelegram();
   const [submitted, setSubmitted] = useState(false);
 
   const [form, setForm] = useState({
-    name: registeredUser?.name ?? "",
+    name: registeredUser?.name ?? (telegramUser ? `${telegramUser.first_name}${telegramUser.last_name ? " " + telegramUser.last_name : ""}` : ""),
     phone: registeredUser?.phone ?? "",
-    topic: "" as "gold" | "stock" | "currency" | "portfolio" | "other" | "",
+    topic: "gold" as "gold" | "stock" | "currency" | "portfolio" | "other",
     message: "",
     preferredDate: "",
     preferredTime: "",
   });
 
   const submitMutation = trpc.consultation.submit.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       setSubmitted(true);
-      twa.hapticFeedback("notification");
       twa.hideMainButton();
-      toast.success(data.message);
-    },
-    onError: (err) => {
-      toast.error(err.message || "خطا در ثبت درخواست");
-      twa.hapticFeedback("impact");
+      twa.hapticFeedback("notification");
     },
   });
 
-  const handleSubmit = () => {
-    if (!form.name.trim()) { toast.error("نام را وارد کنید"); return; }
-    if (!form.phone.trim() || form.phone.length < 10) { toast.error("شماره تلفن معتبر وارد کنید"); return; }
-    if (!form.topic) { toast.error("موضوع مشاوره را انتخاب کنید"); return; }
+  useEffect(() => {
+    twa.hideBackButton();
+    return () => twa.hideMainButton();
+  }, []);
 
+  const isValid = form.name.trim().length > 0 && form.phone.trim().length >= 10;
+
+  const handleSubmit = () => {
+    if (!isValid || submitMutation.isPending) return;
     submitMutation.mutate({
-      telegramId: registeredUser?.telegramId,
+      telegramId: telegramUser ? String(telegramUser.id) : undefined,
+      telegramUsername: telegramUser?.username,
       name: form.name,
       phone: form.phone,
-      topic: form.topic as any,
+      topic: form.topic,
       message: form.message || undefined,
       preferredDate: form.preferredDate || undefined,
       preferredTime: form.preferredTime || undefined,
-      telegramUsername: twa.user?.username,
     });
   };
 
-  // Setup Telegram MainButton
-  useEffect(() => {
-    twa.hideBackButton();
-    if (!submitted) {
-      twa.showMainButton("ثبت درخواست مشاوره", handleSubmit);
-    }
-    return () => twa.hideMainButton();
-  }, [form, submitted]);
-
   if (submitted) {
     return (
-      <div className="page-content flex items-center justify-center p-6">
-        <div className="text-center max-w-xs">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-            style={{ background: "oklch(0.65 0.20 150 / 0.15)", border: "2px solid oklch(0.65 0.20 150 / 0.4)" }}>
-            <CheckCircle size={32} className="text-green-400" />
-          </div>
-          <h2 className="text-lg font-bold mb-2">درخواست ثبت شد!</h2>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            درخواست مشاوره شما با موفقیت ثبت شد. آرش صفری در اسرع وقت با شما تماس خواهد گرفت.
-          </p>
-          <div className="fin-card text-right space-y-2 mb-6">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">نام:</span>
-              <span className="font-medium">{form.name}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">موضوع:</span>
-              <span className="font-medium">{TOPICS.find(t => t.value === form.topic)?.label}</span>
-            </div>
-            {form.preferredDate && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">تاریخ ترجیحی:</span>
-                <span className="font-medium">{form.preferredDate}</span>
-              </div>
-            )}
-          </div>
-          <Button
-            className="w-full"
-            variant="outline"
-            onClick={() => { setSubmitted(false); setForm({ name: registeredUser?.name ?? "", phone: registeredUser?.phone ?? "", topic: "", message: "", preferredDate: "", preferredTime: "" }); }}
-          >
-            ثبت درخواست جدید
-          </Button>
+      <div className="page-content flex flex-col items-center justify-center px-6 text-center" dir="rtl">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+          style={{ background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.25)" }}
+        >
+          <CheckCircle size={32} style={{ color: "#4ADE80" }} />
         </div>
+        <h2 className="text-lg font-black mb-2" style={{ color: "var(--text)" }}>
+          درخواست ثبت شد
+        </h2>
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-3)" }}>
+          درخواست مشاوره شما با موفقیت ثبت شد. آرش صفری به زودی با شما تماس خواهد گرفت.
+        </p>
+        <div className="card-elevated p-4 w-full text-right mb-6 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span style={{ color: "var(--text-3)" }}>نام:</span>
+            <span className="font-bold" style={{ color: "var(--text)" }}>{form.name}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span style={{ color: "var(--text-3)" }}>موضوع:</span>
+            <span className="font-bold" style={{ color: "var(--text)" }}>
+              {TOPICS.find(t => t.value === form.topic)?.label}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            setSubmitted(false);
+            setForm({ name: registeredUser?.name ?? "", phone: registeredUser?.phone ?? "", topic: "gold", message: "", preferredDate: "", preferredTime: "" });
+          }}
+          className="btn-secondary px-6 py-2.5 rounded-xl text-sm font-bold"
+        >
+          درخواست جدید
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="page-content">
-      <div className="px-4 pt-5 pb-4 grid-bg">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "oklch(0.62 0.25 330 / 0.15)", border: "1px solid oklch(0.62 0.25 330 / 0.3)" }}>
-            <MessageSquare size={18} className="text-accent" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold">درخواست مشاوره</h1>
-            <p className="text-xs text-muted-foreground">مشاوره تخصصی با آرش صفری</p>
-          </div>
-        </div>
-      </div>
+    <div className="page-content" dir="rtl">
+      <header
+        className="sticky top-0 z-40 px-4 py-3"
+        style={{
+          background: "rgba(11,18,32,0.96)",
+          borderBottom: "1px solid var(--line)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <h1 className="text-sm font-black" style={{ color: "var(--text)" }}>درخواست مشاوره</h1>
+        <p className="text-xs mt-0.5" style={{ color: "var(--text-3)" }}>با آرش صفری مشاوره بگیرید</p>
+      </header>
 
-      <div className="px-4 py-4 space-y-4">
-        {/* Advisor Card */}
-        <div className="fin-card geo-accent flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, oklch(0.62 0.22 200), oklch(0.62 0.25 330))" }}>
+      <div className="px-4 pt-4 space-y-4">
+        {/* Advisor banner */}
+        <div
+          className="rounded-2xl p-4 flex items-center gap-3"
+          style={{
+            background: "linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%)",
+            border: "1px solid rgba(212,162,43,0.2)",
+          }}
+        >
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-base font-black"
+            style={{
+              background: "linear-gradient(135deg, rgba(212,162,43,0.3), rgba(212,162,43,0.1))",
+              border: "1px solid rgba(212,162,43,0.4)",
+              color: "var(--gold-soft)",
+            }}
+          >
             آ
           </div>
           <div>
-            <p className="text-sm font-semibold">آرش صفری</p>
-            <p className="text-xs text-muted-foreground">مشاور و تحلیلگر سرمایه‌گذاری</p>
-            <div className="flex gap-1 mt-1">
-              <span className="badge-cyan">بورس</span>
-              <span className="badge-pink">طلا</span>
-              <span className="badge-green">ارز</span>
-            </div>
+            <p className="text-sm font-black" style={{ color: "var(--text-on-navy)" }}>آرش صفری</p>
+            <p className="text-xs" style={{ color: "rgba(248,250,252,0.6)" }}>مشاور و تحلیلگر سرمایه‌گذاری</p>
           </div>
         </div>
 
         {/* Form */}
-        <div className="fin-card space-y-4">
-          <h3 className="text-sm font-semibold">اطلاعات تماس</h3>
+        <div className="card-elevated p-4 space-y-4">
+          <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--text-3)" }}>
+            اطلاعات تماس
+          </h3>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">نام و نام خانوادگی *</Label>
-            <Input
+          <div>
+            <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-2)" }}>
+              نام و نام خانوادگی <span style={{ color: "#F87171" }}>*</span>
+            </label>
+            <input
+              type="text"
               value={form.name}
-              onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-              placeholder="آرش صفری"
-              className="bg-muted border-border text-sm"
-              dir="rtl"
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              placeholder="مثال: علی محمدی"
+              className="input-field"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">شماره تلفن *</Label>
-            <Input
+          <div>
+            <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-2)" }}>
+              شماره تماس <span style={{ color: "#F87171" }}>*</span>
+            </label>
+            <input
               type="tel"
               value={form.phone}
-              onChange={e => setForm(p => ({ ...p, phone: e.target.value.replace(/[^0-9+]/g, "") }))}
+              onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/[^0-9+]/g, "") }))}
               placeholder="09123456789"
-              className="bg-muted border-border text-sm"
+              className="input-field"
               dir="ltr"
+              style={{ textAlign: "right" }}
             />
           </div>
         </div>
 
-        <div className="fin-card space-y-4">
-          <h3 className="text-sm font-semibold">موضوع مشاوره</h3>
+        <div className="card-elevated p-4 space-y-4">
+          <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--text-3)" }}>
+            موضوع مشاوره
+          </h3>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">موضوع *</Label>
-            <Select
-              value={form.topic}
-              onValueChange={v => setForm(p => ({ ...p, topic: v as any }))}
-            >
-              <SelectTrigger className="bg-muted border-border text-sm">
-                <SelectValue placeholder="موضوع مشاوره را انتخاب کنید" />
-              </SelectTrigger>
-              <SelectContent>
-                {TOPICS.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">توضیحات (اختیاری)</Label>
-            <Textarea
-              value={form.message}
-              onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
-              placeholder="سوالات یا موضوعاتی که می‌خواهید در مشاوره مطرح شود را بنویسید..."
-              className="bg-muted border-border text-sm resize-none"
-              rows={3}
-              dir="rtl"
-            />
+          <div className="grid grid-cols-2 gap-2">
+            {TOPICS.map(t => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, topic: t.value as typeof form.topic }))}
+                className="py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-center"
+                style={{
+                  background: form.topic === t.value ? "var(--navy)" : "var(--surface-2)",
+                  color: form.topic === t.value ? "var(--text-on-navy)" : "var(--text-3)",
+                  border: form.topic === t.value
+                    ? "1px solid rgba(212,162,43,0.35)"
+                    : "1px solid var(--line)",
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="fin-card space-y-4">
-          <h3 className="text-sm font-semibold">زمان‌بندی (اختیاری)</h3>
+        <div className="card-elevated p-4 space-y-4">
+          <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--text-3)" }}>
+            زمان‌بندی (اختیاری)
+          </h3>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">تاریخ ترجیحی</Label>
-            <Input
-              type="text"
-              value={form.preferredDate}
-              onChange={e => setForm(p => ({ ...p, preferredDate: e.target.value }))}
-              placeholder="مثال: ۱۴۰۳/۰۵/۱۵"
-              className="bg-muted border-border text-sm"
-              dir="rtl"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">بازه زمانی ترجیحی</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {TIME_SLOTS.map(slot => (
+          <div>
+            <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-2)" }}>
+              بازه زمانی ترجیحی
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {TIME_SLOTS.map(t => (
                 <button
-                  key={slot}
-                  onClick={() => setForm(p => ({ ...p, preferredTime: slot }))}
-                  className={`text-xs py-2 px-3 rounded-lg border transition-all duration-200 ${
-                    form.preferredTime === slot
-                      ? "bg-primary/20 border-primary text-primary"
-                      : "bg-muted border-border text-muted-foreground hover:border-primary/40"
-                  }`}
-                  dir="ltr"
+                  key={t.value}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, preferredTime: t.value }))}
+                  className="py-2 px-2 rounded-xl text-[11px] font-bold transition-all text-center"
+                  style={{
+                    background: form.preferredTime === t.value ? "var(--navy)" : "var(--surface-2)",
+                    color: form.preferredTime === t.value ? "var(--text-on-navy)" : "var(--text-3)",
+                    border: form.preferredTime === t.value
+                      ? "1px solid rgba(212,162,43,0.35)"
+                      : "1px solid var(--line)",
+                  }}
                 >
-                  {slot}
+                  {t.label}
                 </button>
               ))}
             </div>
           </div>
+
+          <div>
+            <label className="block text-xs font-bold mb-1.5" style={{ color: "var(--text-2)" }}>
+              توضیحات بیشتر
+            </label>
+            <textarea
+              value={form.message}
+              onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+              placeholder="هر سوال یا موضوعی که می‌خواهید مطرح شود..."
+              rows={3}
+              className="input-field resize-none"
+            />
+          </div>
         </div>
 
-        {/* Submit Button (fallback for non-Telegram env) */}
-        <Button
-          className="w-full font-semibold"
+        {submitMutation.isError && (
+          <div
+            className="rounded-xl p-3 text-xs"
+            style={{ background: "rgba(185,28,28,0.1)", border: "1px solid rgba(185,28,28,0.25)", color: "#F87171" }}
+          >
+            خطا در ثبت درخواست. لطفاً دوباره تلاش کنید.
+          </div>
+        )}
+
+        <button
           onClick={handleSubmit}
-          disabled={submitMutation.isPending}
-          style={{ background: "linear-gradient(135deg, oklch(0.62 0.25 330), oklch(0.55 0.25 330))" }}
+          disabled={!isValid || submitMutation.isPending}
+          className="w-full py-3.5 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: isValid
+              ? "linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%)"
+              : "var(--surface-2)",
+            border: isValid ? "1px solid rgba(212,162,43,0.3)" : "1px solid var(--line)",
+            color: isValid ? "var(--text-on-navy)" : "var(--text-3)",
+          }}
         >
           {submitMutation.isPending ? (
-            <><Loader2 size={16} className="animate-spin ml-2" />در حال ثبت...</>
+            <><Loader2 size={16} className="animate-spin" />در حال ثبت...</>
           ) : (
-            "ثبت درخواست مشاوره"
+            <><MessageSquare size={16} />ثبت درخواست مشاوره</>
           )}
-        </Button>
+        </button>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs pb-2" style={{ color: "var(--text-3)" }}>
           پس از ثبت، آرش صفری از طریق تلگرام با شما تماس خواهد گرفت
         </p>
       </div>

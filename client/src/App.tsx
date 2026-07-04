@@ -12,30 +12,44 @@ import Calculator from "./pages/Calculator";
 import Analysis from "./pages/Analysis";
 import Consultation from "./pages/Consultation";
 import Profile from "./pages/Profile";
+import ProfileSetup from "./pages/ProfileSetup";
 import { Loader2 } from "lucide-react";
 
 function AppContent() {
-  const { isRegistered, isLoading, telegramUser } = useTelegram();
+  const { isVerified, isLoading, needsProfile } = useTelegram();
 
-  // Show loading while checking auth
+  // نمایش loading فقط برای مدت کوتاه
   if (isLoading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-background">
+      <div
+        className="min-h-dvh flex items-center justify-center"
+        style={{ background: "var(--bg)" }}
+      >
         <div className="text-center">
-          <Loader2 size={32} className="animate-spin text-primary mx-auto mb-3" />
-          <p className="text-muted-foreground text-sm">در حال بارگذاری...</p>
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: "var(--navy)", border: "1px solid rgba(212,162,43,0.3)" }}
+          >
+            <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold-soft)" }} />
+          </div>
+          <p className="text-sm" style={{ color: "var(--text-3)" }}>در حال بارگذاری...</p>
         </div>
       </div>
     );
   }
 
-  // Show login if no telegram user or not registered
-  if (!telegramUser || !isRegistered) {
+  // ✅ Gate اصلی: فقط هویت تلگرام نیاز است
+  if (!isVerified) {
     return <TelegramLogin />;
   }
 
+  // کاربر جدید است — یک بار نام و شماره می‌گیریم (soft prompt)
+  if (needsProfile) {
+    return <ProfileSetup />;
+  }
+
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh" style={{ background: "var(--bg)" }}>
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/calculator" component={Calculator} />
@@ -60,9 +74,9 @@ function App() {
               position="top-center"
               toastOptions={{
                 style: {
-                  background: "oklch(0.13 0.025 262)",
-                  border: "1px solid oklch(0.20 0.025 262)",
-                  color: "oklch(0.93 0.01 65)",
+                  background: "var(--surface)",
+                  border: "1px solid var(--line)",
+                  color: "var(--text)",
                   direction: "rtl",
                   fontFamily: "'Vazirmatn', sans-serif",
                 },

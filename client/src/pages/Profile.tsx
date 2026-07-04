@@ -1,22 +1,21 @@
 import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useTelegram } from "@/contexts/TelegramContext";
-import { Skeleton } from "@/components/ui/skeleton";
-import { User, Phone, MessageSquare, Clock, CheckCircle, XCircle, AlertCircle, Star } from "lucide-react";
+import { User, Phone, MessageSquare, Clock, CheckCircle, XCircle, Star } from "lucide-react";
 
-const STATUS_CONFIG = {
-  pending: { label: "در انتظار", icon: Clock, className: "badge-cyan" },
-  confirmed: { label: "تأیید شده", icon: CheckCircle, className: "badge-green" },
-  completed: { label: "انجام شده", icon: Star, className: "badge-green" },
-  cancelled: { label: "لغو شده", icon: XCircle, className: "badge-red" },
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  pending:   { label: "در انتظار",   color: "#FCD34D", bg: "rgba(252,211,77,0.1)" },
+  confirmed: { label: "تأیید شده",   color: "#4ADE80", bg: "rgba(74,222,128,0.1)" },
+  completed: { label: "انجام شده",   color: "#4ADE80", bg: "rgba(74,222,128,0.1)" },
+  cancelled: { label: "لغو شده",     color: "#F87171", bg: "rgba(248,113,113,0.1)" },
 };
 
 const TOPIC_LABELS: Record<string, string> = {
-  gold: "🥇 طلا",
-  stock: "📈 بورس",
-  currency: "💱 ارز",
-  portfolio: "📊 پرتفوی",
-  other: "💬 سایر",
+  gold: "طلا و سکه",
+  stock: "بورس و سهام",
+  currency: "ارز و دلار",
+  portfolio: "مدیریت سبد",
+  other: "سایر موارد",
 };
 
 export default function Profile() {
@@ -26,178 +25,195 @@ export default function Profile() {
     twa.hideBackButton();
   }, []);
 
+  const telegramId = telegramUser ? String(telegramUser.id) : registeredUser?.telegramId ?? "";
+
   const consultationsQuery = trpc.consultation.myList.useQuery(
-    { telegramId: registeredUser?.telegramId ?? "" },
-    { enabled: !!registeredUser?.telegramId }
+    { telegramId },
+    { enabled: !!telegramId }
   );
 
   const consultations = consultationsQuery.data ?? [];
-
   const stats = {
     total: consultations.length,
-    pending: consultations.filter(c => c.status === "pending").length,
-    completed: consultations.filter(c => c.status === "completed").length,
+    pending: consultations.filter((c: any) => c.status === "pending").length,
+    completed: consultations.filter((c: any) => c.status === "completed").length,
   };
 
+  const displayName =
+    registeredUser?.name ||
+    (telegramUser ? `${telegramUser.first_name}${telegramUser.last_name ? " " + telegramUser.last_name : ""}` : "کاربر");
+
+  const initials = displayName.trim().charAt(0) || "؟";
+
   return (
-    <div className="page-content">
-      {/* Header */}
-      <div className="px-4 pt-5 pb-6 grid-bg relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-32 h-32 rounded-full opacity-10 blur-2xl -translate-y-8 -translate-x-8"
-          style={{ background: "oklch(0.62 0.22 200)" }} />
-        <div className="absolute bottom-0 right-0 w-24 h-24 rounded-full opacity-10 blur-2xl translate-y-4 translate-x-4"
-          style={{ background: "oklch(0.62 0.25 330)" }} />
+    <div className="page-content" dir="rtl">
+      {/* ─── Header ─────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-40 px-4 py-3"
+        style={{
+          background: "rgba(11,18,32,0.96)",
+          borderBottom: "1px solid var(--line)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <h1 className="text-sm font-black" style={{ color: "var(--text)" }}>پروفایل</h1>
+      </header>
 
-        <div className="flex items-center gap-4 relative z-10">
-          {/* Avatar */}
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold flex-shrink-0"
+      <div className="px-4 pt-4 space-y-4">
+        {/* ─── Avatar card ──────────────────────────────────── */}
+        <div
+          className="rounded-2xl p-5 relative overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%)",
+            border: "1px solid rgba(212,162,43,0.2)",
+          }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.05]"
             style={{
-              background: "linear-gradient(135deg, oklch(0.62 0.22 200 / 0.3), oklch(0.62 0.25 330 / 0.3))",
-              border: "2px solid oklch(0.62 0.22 200 / 0.4)",
-            }}>
-            {registeredUser?.firstName?.charAt(0) ?? telegramUser?.first_name?.charAt(0) ?? "؟"}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-foreground truncate">
-              {registeredUser?.name ?? telegramUser?.first_name ?? "کاربر"}
-            </h1>
-            {telegramUser?.username && (
-              <p className="text-sm text-muted-foreground">@{telegramUser.username}</p>
-            )}
-            <div className="flex items-center gap-1 mt-1">
-              <span className="badge-cyan text-[10px]">
-                {telegramUser?.is_premium ? "⭐ پریمیوم" : "کاربر تلگرام"}
-              </span>
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }}
+          />
+          <div className="relative z-10 flex items-center gap-4">
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, rgba(212,162,43,0.3), rgba(212,162,43,0.1))",
+                border: "2px solid rgba(212,162,43,0.4)",
+                color: "var(--gold-soft)",
+              }}
+            >
+              {initials}
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 py-4 space-y-4">
-        {/* User Info */}
-        <div className="fin-card space-y-3">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
-            <User size={14} className="text-primary" />
-            اطلاعات حساب
-          </h2>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between py-2 border-b border-border">
-              <span className="text-xs text-muted-foreground">نام کامل</span>
-              <span className="text-sm font-medium">{registeredUser?.name ?? "---"}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-border">
-              <span className="text-xs text-muted-foreground">شماره تلفن</span>
-              <span className="text-sm font-medium" dir="ltr">{registeredUser?.phone ?? "---"}</span>
-            </div>
-            {telegramUser?.username && (
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-xs text-muted-foreground">نام کاربری تلگرام</span>
-                <span className="text-sm font-medium" dir="ltr">@{telegramUser.username}</span>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-black truncate" style={{ color: "var(--text-on-navy)" }}>
+                {displayName}
+              </h2>
+              {telegramUser?.username && (
+                <p className="text-xs mt-0.5" style={{ color: "rgba(248,250,252,0.6)" }}>
+                  @{telegramUser.username}
+                </p>
+              )}
+              <div className="flex items-center gap-2 mt-2">
+                {telegramUser?.is_premium && (
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      background: "rgba(212,162,43,0.15)",
+                      border: "1px solid rgba(212,162,43,0.3)",
+                      color: "var(--gold-soft)",
+                    }}
+                  >
+                    ⭐ پریمیوم
+                  </span>
+                )}
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{
+                    background: "rgba(147,197,253,0.1)",
+                    border: "1px solid rgba(147,197,253,0.2)",
+                    color: "#93C5FD",
+                  }}
+                >
+                  کاربر تلگرام
+                </span>
               </div>
-            )}
-            <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-muted-foreground">شناسه تلگرام</span>
-              <span className="text-sm font-medium text-muted-foreground" dir="ltr">
-                {telegramUser?.id ?? registeredUser?.telegramId ?? "---"}
-              </span>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
+        {/* ─── Info card ────────────────────────────────────── */}
+        <div className="card-elevated p-4 space-y-3">
+          <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: "var(--text-3)" }}>
+            اطلاعات حساب
+          </h3>
+          {[
+            { icon: User, label: "نام", value: displayName },
+            { icon: Phone, label: "شماره تماس", value: registeredUser?.phone ?? "ثبت نشده" },
+            { icon: MessageSquare, label: "شناسه تلگرام", value: telegramUser ? `#${telegramUser.id}` : "—" },
+          ].map(({ icon: Icon, label, value }) => (
+            <div key={label} className="flex items-center justify-between py-1.5" style={{ borderBottom: "1px solid var(--line)" }}>
+              <div className="flex items-center gap-2">
+                <Icon size={14} style={{ color: "var(--text-3)" }} />
+                <span className="text-xs" style={{ color: "var(--text-3)" }}>{label}</span>
+              </div>
+              <span className="text-xs font-bold" style={{ color: "var(--text)" }}>{value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* ─── Stats ────────────────────────────────────────── */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="fin-card text-center py-3">
-            <p className="text-xl font-bold text-primary">{new Intl.NumberFormat("fa-IR").format(stats.total)}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">کل مشاوره</p>
-          </div>
-          <div className="fin-card text-center py-3">
-            <p className="text-xl font-bold" style={{ color: "oklch(0.65 0.20 150)" }}>
-              {new Intl.NumberFormat("fa-IR").format(stats.completed)}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">انجام شده</p>
-          </div>
-          <div className="fin-card text-center py-3">
-            <p className="text-xl font-bold text-accent">
-              {new Intl.NumberFormat("fa-IR").format(stats.pending)}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">در انتظار</p>
-          </div>
+          {[
+            { label: "کل مشاوره‌ها", value: stats.total, color: "#93C5FD" },
+            { label: "در انتظار", value: stats.pending, color: "#FCD34D" },
+            { label: "انجام شده", value: stats.completed, color: "#4ADE80" },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="card-elevated p-3 text-center">
+              <p className="text-2xl font-black mb-1" style={{ color }}>{value}</p>
+              <p className="text-[10px]" style={{ color: "var(--text-3)" }}>{label}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Consultation History */}
+        {/* ─── Consultation history ─────────────────────────── */}
         <div>
-          <h2 className="text-sm font-semibold flex items-center gap-2 mb-3">
-            <MessageSquare size={14} className="text-accent" />
-            تاریخچه مشاوره‌ها
-          </h2>
+          <h3 className="text-sm font-black mb-3" style={{ color: "var(--text)" }}>تاریخچه مشاوره‌ها</h3>
 
-          {consultationsQuery.isLoading ? (
-            <div className="space-y-2">
-              {[1, 2].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
+          {!telegramId ? (
+            <div className="card-elevated p-6 text-center">
+              <p className="text-sm" style={{ color: "var(--text-3)" }}>
+                برای مشاهده تاریخچه، ابتدا وارد شوید
+              </p>
             </div>
-          ) : consultations.length === 0 ? (
-            <div className="fin-card text-center py-8">
-              <MessageSquare size={28} className="text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">هنوز درخواست مشاوره‌ای ثبت نکرده‌اید</p>
-              <button
-                className="text-xs text-primary hover:underline mt-2"
-                onClick={() => window.location.href = "/consultation"}
-              >
-                اولین مشاوره را ثبت کنید ←
-              </button>
-            </div>
-          ) : (
+          ) : consultationsQuery.isLoading ? (
             <div className="space-y-2">
-              {consultations.map(c => {
+              {[1, 2].map(i => <div key={i} className="skeleton h-20 rounded-xl" />)}
+            </div>
+          ) : consultations.length > 0 ? (
+            <div className="space-y-2">
+              {consultations.map((c: any) => {
                 const status = STATUS_CONFIG[c.status] ?? STATUS_CONFIG.pending;
-                const StatusIcon = status.icon;
                 return (
-                  <div key={c.id} className="fin-card">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-sm font-medium">
-                            {TOPIC_LABELS[c.topic] ?? c.topic}
-                          </span>
-                          <span className={status.className + " flex items-center gap-1"}>
-                            <StatusIcon size={9} />
-                            {status.label}
-                          </span>
-                        </div>
-                        {c.message && (
-                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{c.message}</p>
-                        )}
-                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted-foreground">
-                          {c.preferredDate && <span>📅 {c.preferredDate}</span>}
-                          {c.preferredTime && <span>⏰ {c.preferredTime}</span>}
-                          <span>{new Date(c.createdAt).toLocaleDateString("fa-IR")}</span>
-                        </div>
-                      </div>
+                  <div key={c.id} className="card-elevated p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="text-sm font-bold" style={{ color: "var(--text)" }}>
+                        {TOPIC_LABELS[c.topic] ?? c.topic}
+                      </p>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: status.bg, color: status.color, border: `1px solid ${status.color}30` }}
+                      >
+                        {status.label}
+                      </span>
                     </div>
+                    {c.message && (
+                      <p className="text-xs line-clamp-2 mb-2" style={{ color: "var(--text-3)" }}>{c.message}</p>
+                    )}
+                    <p className="text-[10px]" style={{ color: "var(--text-3)" }}>
+                      {new Date(c.createdAt).toLocaleDateString("fa-IR", {
+                        year: "numeric", month: "long", day: "numeric"
+                      })}
+                    </p>
                   </div>
                 );
               })}
             </div>
+          ) : (
+            <div className="card-elevated p-6 text-center">
+              <MessageSquare size={28} className="mx-auto mb-2" style={{ color: "var(--text-3)" }} />
+              <p className="text-sm font-bold mb-1" style={{ color: "var(--text-2)" }}>
+                هنوز مشاوره‌ای ندارید
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-3)" }}>
+                اولین درخواست مشاوره خود را ثبت کنید
+              </p>
+            </div>
           )}
-        </div>
-
-        {/* About Advisor */}
-        <div className="fin-card geo-accent">
-          <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Star size={14} className="text-accent" />
-            درباره آرش صفری
-          </h2>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            آرش صفری تحلیلگر و مشاور سرمایه‌گذاری با تخصص در بازارهای مالی ایران است.
-            با بیش از یک دهه تجربه در تحلیل بازار بورس، طلا و ارز، راهنمای سرمایه‌گذاران
-            برای دستیابی به اهداف مالی‌شان است.
-          </p>
-          <div className="flex gap-2 mt-3">
-            <span className="badge-cyan">بورس ایران</span>
-            <span className="badge-pink">طلا و ارز</span>
-            <span className="badge-green">پرتفوی</span>
-          </div>
         </div>
       </div>
     </div>
