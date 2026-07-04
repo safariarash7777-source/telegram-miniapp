@@ -18,6 +18,7 @@ export interface TelegramWebAppState {
   colorScheme: "light" | "dark";
   expand: () => void;
   close: () => void;
+  openLink: (url: string) => void;
   showBackButton: (callback: () => void) => void;
   hideBackButton: () => void;
   showMainButton: (text: string, callback: () => void) => void;
@@ -32,6 +33,7 @@ declare global {
         ready: () => void;
         expand: () => void;
         close: () => void;
+        openLink: (url: string, options?: { try_instant_view?: boolean }) => void;
         initData: string;
         initDataUnsafe: {
           user?: TelegramUser;
@@ -98,6 +100,14 @@ export function useTelegramWebApp(): TelegramWebAppState {
   const expand = () => twa?.expand();
   const close = () => twa?.close();
 
+  const openLink = (url: string) => {
+    if (twa?.openLink) {
+      twa.openLink(url);
+    } else {
+      window.open(url, "_blank");
+    }
+  };
+
   const showBackButton = (callback: () => void) => {
     if (!twa?.BackButton) return;
     if (backButtonCallback) {
@@ -152,6 +162,7 @@ export function useTelegramWebApp(): TelegramWebAppState {
     colorScheme,
     expand,
     close,
+    openLink,
     showBackButton,
     hideBackButton,
     showMainButton,

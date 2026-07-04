@@ -11,8 +11,9 @@ import Dashboard from "./pages/Dashboard";
 import Calculator from "./pages/Calculator";
 import Analysis from "./pages/Analysis";
 import Consultation from "./pages/Consultation";
-import Profile from "./pages/Profile";
-import ProfileSetup from "./pages/ProfileSetup";
+import Profile from "@/pages/Profile";
+import ProfileSetup from "@/pages/ProfileSetup";
+import About from "@/pages/About";
 import { Loader2 } from "lucide-react";
 
 function AppContent() {
@@ -57,6 +58,7 @@ function AppContent() {
         <Route path="/analysis/:id" component={Analysis} />
         <Route path="/consultation" component={Consultation} />
         <Route path="/profile" component={Profile} />
+        <Route path="/about" component={About} />
         <Route component={NotFound} />
       </Switch>
       <BottomNav />

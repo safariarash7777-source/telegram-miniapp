@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useTelegram } from "@/contexts/TelegramContext";
-import { MessageSquare, CheckCircle, Loader2, ChevronDown } from "lucide-react";
+import { MessageSquare, CheckCircle, Loader2, ChevronDown, Send, ArrowLeft } from "lucide-react";
 
 const TOPICS = [
   { value: "gold", label: "طلا و سکه" },
@@ -35,6 +36,8 @@ export default function Consultation() {
       setSubmitted(true);
       twa.hideMainButton();
       twa.hapticFeedback("notification");
+      // Auto-redirect to About page after 4 seconds
+      setTimeout(() => navigate("/about"), 4000);
     },
   });
 
@@ -59,6 +62,8 @@ export default function Consultation() {
     });
   };
 
+  const [, navigate] = useLocation();
+
   if (submitted) {
     return (
       <div className="page-content flex flex-col items-center justify-center px-6 text-center" dir="rtl">
@@ -71,10 +76,10 @@ export default function Consultation() {
         <h2 className="text-lg font-black mb-2" style={{ color: "var(--text)" }}>
           درخواست ثبت شد
         </h2>
-        <p className="text-sm mb-6 leading-relaxed" style={{ color: "var(--text-3)" }}>
+        <p className="text-sm mb-4 leading-relaxed" style={{ color: "var(--text-3)" }}>
           درخواست مشاوره شما با موفقیت ثبت شد. آرش صفری به زودی با شما تماس خواهد گرفت.
         </p>
-        <div className="card-elevated p-4 w-full text-right mb-6 space-y-2">
+        <div className="card-elevated p-4 w-full text-right mb-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span style={{ color: "var(--text-3)" }}>نام:</span>
             <span className="font-bold" style={{ color: "var(--text)" }}>{form.name}</span>
@@ -86,15 +91,49 @@ export default function Consultation() {
             </span>
           </div>
         </div>
-        <button
-          onClick={() => {
-            setSubmitted(false);
-            setForm({ name: registeredUser?.name ?? "", phone: registeredUser?.phone ?? "", topic: "gold", message: "", preferredDate: "", preferredTime: "" });
-          }}
-          className="btn-secondary px-6 py-2.5 rounded-xl text-sm font-bold"
+
+        {/* Follow on Telegram CTA */}
+        <div
+          className="w-full rounded-xl p-4 mb-4 text-right"
+          style={{ background: "rgba(0,136,204,0.1)", border: "1px solid rgba(0,136,204,0.25)" }}
         >
-          درخواست جدید
-        </button>
+          <p className="text-xs mb-2 font-bold" style={{ color: "var(--text-2)", fontFamily: "'Vazirmatn', sans-serif" }}>
+            برای دریافت تحلیل‌های روزانه:
+          </p>
+          <button
+            onClick={() => twa.openLink("https://t.me/arashsafariiiiiiii")}
+            className="flex items-center gap-2 text-sm font-bold"
+            style={{ color: "#0088cc", fontFamily: "'Vazirmatn', sans-serif" }}
+          >
+            <Send size={14} />
+            کانال تلگرام @arashsafariiiiiiii
+          </button>
+        </div>
+
+        <div className="flex gap-3 w-full">
+          <button
+            onClick={() => navigate("/about")}
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+            style={{
+              background: "var(--navy)",
+              border: "1px solid rgba(212,162,43,0.3)",
+              color: "var(--gold-soft)",
+              fontFamily: "'Vazirmatn', sans-serif",
+            }}
+          >
+            <ArrowLeft size={14} />
+            درباره آرش صفری
+          </button>
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setForm({ name: registeredUser?.name ?? "", phone: registeredUser?.phone ?? "", topic: "gold", message: "", preferredDate: "", preferredTime: "" });
+            }}
+            className="flex-1 btn-secondary py-2.5 rounded-xl text-sm font-bold"
+          >
+            درخواست جدید
+          </button>
+        </div>
       </div>
     );
   }

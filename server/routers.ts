@@ -14,6 +14,7 @@ import {
 import { notifyAdminNewConsultation } from "./telegram";
 import { verifyTelegramInitData, parseTelegramUser, isInitDataExpired } from "./telegram-verify";
 import { getLivePrices } from "./price-service";
+import { getCachedArashPosts } from "./channel-scraper";
 
 export const appRouter = router({
   system: systemRouter,
@@ -265,6 +266,23 @@ export const appRouter = router({
     getLive: publicProcedure.query(async () => {
       return await getLivePrices();
     }),
+  }),
+
+  // ── Social / Channel Posts ─────────────────────────────────────────────
+  social: router({
+    getChannelPosts: publicProcedure
+      .input(z.object({
+        channel: z.string().default("arashsafariiiiiiii"),
+        limit: z.number().min(1).max(20).default(8),
+      }))
+      .query(async ({ input }) => {
+        try {
+          return await getCachedArashPosts(input.limit);
+        } catch (error) {
+          console.error("[Social] Failed to fetch channel posts:", error);
+          return [];
+        }
+      }),
   }),
 });
 

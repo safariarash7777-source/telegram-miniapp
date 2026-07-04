@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { LayoutDashboard, Calculator, BarChart3, MessageSquare, User } from "lucide-react";
+import { LayoutDashboard, Calculator, BarChart3, MessageSquare, Info } from "lucide-react";
 import { useTelegram } from "@/contexts/TelegramContext";
 
 const navItems = [
@@ -7,7 +7,7 @@ const navItems = [
   { path: "/calculator", label: "محاسبه‌گر", icon: Calculator },
   { path: "/analysis", label: "تحلیل", icon: BarChart3 },
   { path: "/consultation", label: "مشاوره", icon: MessageSquare },
-  { path: "/profile", label: "پروفایل", icon: User },
+  { path: "/about", label: "درباره من", icon: Info },
 ];
 
 export default function BottomNav() {

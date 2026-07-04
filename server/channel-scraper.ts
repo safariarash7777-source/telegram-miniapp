@@ -128,6 +128,115 @@ export async function scrapeGoldChannel(): Promise<ChannelPrice[]> {
   return results;
 }
 
+// ── Arash Safari Channel Posts ────────────────────────────────────────────
+
+export interface ChannelPost {
+  id: string;
+  text: string;
+  date: string;
+  url: string;
+}
+
+// Scrape @arashsafariiiiiiii for latest posts
+export async function scrapeArashChannelPosts(limit = 8): Promise<ChannelPost[]> {
+  const posts: ChannelPost[] = [];
+
+  try {
+    const response = await fetch('https://t.me/s/arashsafariiiiiiii', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'fa,en;q=0.9',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      console.warn(`[ChannelScraper] Arash channel returned ${response.status}`);
+      return posts;
+    }
+
+    const html = await response.text();
+
+    // Extract message IDs and dates
+    const messageBlockRegex = /<div class="tgme_widget_message_wrap[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
+    const idRegex = /data-post="([^"]+)"/;
+    const dateRegex = /<time[^>]*datetime="([^"]+)"/;
+    const textRegex = /class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/;
+
+    // Simpler approach: extract all message texts and dates
+    const msgTextRegex = /class="tgme_widget_message_text(?:[^"]*)?"[^>]*>([\s\S]*?)<\/div>/g;
+    const msgDateRegex = /<time[^>]*datetime="([^"]+)"[^>]*>/g;
+    const msgIdRegex = /data-post="([^"]+)"/g;
+
+    const texts: string[] = [];
+    const dates: string[] = [];
+    const ids: string[] = [];
+
+    let m;
+    while ((m = msgTextRegex.exec(html)) !== null) {
+      const text = m[1]
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#\d+;/g, '')
+        .trim();
+      if (text.length > 10) texts.push(text);
+    }
+
+    while ((m = msgDateRegex.exec(html)) !== null) {
+      dates.push(m[1]);
+    }
+
+    while ((m = msgIdRegex.exec(html)) !== null) {
+      ids.push(m[1]);
+    }
+
+    // Combine into posts (use last N messages)
+    const count = Math.min(texts.length, limit);
+    const startIdx = Math.max(0, texts.length - count);
+
+    for (let i = startIdx; i < texts.length; i++) {
+      const idx = i - startIdx;
+      const postId = ids[i] ?? `post_${i}`;
+      const channelName = postId.includes('/') ? postId.split('/')[0] : 'arashsafariiiiiiii';
+      const msgNum = postId.includes('/') ? postId.split('/')[1] : String(i);
+
+      posts.push({
+        id: postId,
+        text: texts[i],
+        date: dates[i] ?? new Date().toISOString(),
+        url: `https://t.me/${channelName}/${msgNum}`,
+      });
+    }
+
+    // Return in reverse order (newest first)
+    posts.reverse();
+    console.log(`[ChannelScraper] Extracted ${posts.length} posts from @arashsafariiiiiiii`);
+  } catch (error) {
+    console.error('[ChannelScraper] Failed to scrape Arash channel:', error);
+  }
+
+  return posts;
+}
+
+// Cache for Arash channel posts (5 minute TTL)
+let arashPostsCache: { data: ChannelPost[]; timestamp: number } | null = null;
+const POSTS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export async function getCachedArashPosts(limit = 8): Promise<ChannelPost[]> {
+  const now = Date.now();
+  if (arashPostsCache && now - arashPostsCache.timestamp < POSTS_CACHE_TTL) {
+    return arashPostsCache.data.slice(0, limit);
+  }
+  const posts = await scrapeArashChannelPosts(limit);
+  arashPostsCache = { data: posts, timestamp: now };
+  return posts;
+}
+
 // Cache for channel prices (5 minute TTL)
 let channelPriceCache: { data: ChannelPrice[]; timestamp: number } | null = null;
 const CHANNEL_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
