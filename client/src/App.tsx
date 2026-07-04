@@ -4,35 +4,72 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import { TelegramProvider, useTelegram } from "./contexts/TelegramContext";
+import BottomNav from "./components/BottomNav";
+import TelegramLogin from "./pages/TelegramLogin";
+import Dashboard from "./pages/Dashboard";
+import Calculator from "./pages/Calculator";
+import Analysis from "./pages/Analysis";
+import Consultation from "./pages/Consultation";
+import Profile from "./pages/Profile";
+import { Loader2 } from "lucide-react";
 
-function Router() {
-  // make sure to consider if you need authentication for certain routes
+function AppContent() {
+  const { isRegistered, isLoading, telegramUser } = useTelegram();
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 size={32} className="animate-spin text-primary mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login if no telegram user or not registered
+  if (!telegramUser || !isRegistered) {
+    return <TelegramLogin />;
+  }
+
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <div className="min-h-dvh bg-background">
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/calculator" component={Calculator} />
+        <Route path="/analysis" component={Analysis} />
+        <Route path="/analysis/:id" component={Analysis} />
+        <Route path="/consultation" component={Consultation} />
+        <Route path="/profile" component={Profile} />
+        <Route component={NotFound} />
+      </Switch>
+      <BottomNav />
+    </div>
   );
 }
-
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <TelegramProvider>
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                style: {
+                  background: "oklch(0.13 0.025 262)",
+                  border: "1px solid oklch(0.20 0.025 262)",
+                  color: "oklch(0.93 0.01 65)",
+                  direction: "rtl",
+                  fontFamily: "'Vazirmatn', sans-serif",
+                },
+              }}
+            />
+            <AppContent />
+          </TelegramProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

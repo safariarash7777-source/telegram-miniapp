@@ -42,117 +42,127 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ── Dark Financial Theme (default) ──────────────────────────────────────── */
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  --radius: 0.75rem;
+
+  /* Dark navy background */
+  --background: oklch(0.09 0.025 262);
+  --foreground: oklch(0.93 0.01 65);
+
+  /* Card: slightly lighter navy */
+  --card: oklch(0.13 0.025 262);
+  --card-foreground: oklch(0.93 0.01 65);
+
+  --popover: oklch(0.13 0.025 262);
+  --popover-foreground: oklch(0.93 0.01 65);
+
+  /* Primary: cyan */
+  --primary: oklch(0.62 0.22 200);
+  --primary-foreground: oklch(0.09 0.025 262);
+
+  /* Secondary */
+  --secondary: oklch(0.17 0.025 262);
+  --secondary-foreground: oklch(0.85 0.01 65);
+
+  /* Muted */
+  --muted: oklch(0.19 0.025 262);
+  --muted-foreground: oklch(0.60 0.01 65);
+
+  /* Accent: pink/magenta */
+  --accent: oklch(0.62 0.25 330);
+  --accent-foreground: oklch(0.09 0.025 262);
+
+  /* Destructive */
+  --destructive: oklch(0.60 0.22 25);
+  --destructive-foreground: oklch(0.09 0.025 262);
+
+  /* Border and input */
+  --border: oklch(0.20 0.025 262);
+  --input: oklch(0.17 0.025 262);
+  --ring: oklch(0.62 0.22 200);
+
+  /* Charts */
+  --chart-1: oklch(0.62 0.22 200);   /* cyan */
+  --chart-2: oklch(0.62 0.25 330);   /* pink */
+  --chart-3: oklch(0.65 0.20 150);   /* green */
+  --chart-4: oklch(0.60 0.22 25);    /* red */
+  --chart-5: oklch(0.70 0.15 60);    /* yellow */
+
+  /* Sidebar */
+  --sidebar: oklch(0.11 0.025 262);
+  --sidebar-foreground: oklch(0.93 0.01 65);
+  --sidebar-primary: oklch(0.62 0.22 200);
+  --sidebar-primary-foreground: oklch(0.09 0.025 262);
+  --sidebar-accent: oklch(0.62 0.25 330);
+  --sidebar-accent-foreground: oklch(0.09 0.025 262);
+  --sidebar-border: oklch(0.20 0.025 262);
+  --sidebar-ring: oklch(0.62 0.22 200);
 }
 
-.dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
-}
-
+/* ── Base Styles ──────────────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+  }
+
   body {
     @apply bg-background text-foreground;
+    direction: rtl;
+    text-align: right;
+    font-family: 'Vazirmatn', 'Tahoma', 'Arial', sans-serif;
+    /* Safe area for iOS/Telegram */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: oklch(0.13 0.025 262);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.25 0.025 262);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.62 0.22 200);
+  }
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
   [type="submit"]:not(:disabled),
-  [type="reset"]:not(:disabled),
-  a[href],
-  select:not(:disabled),
-  input[type="checkbox"]:not(:disabled),
-  input[type="radio"]:not(:disabled) {
+  a[href] {
     @apply cursor-pointer;
   }
 }
 
+/* ── Components ──────────────────────────────────────────────────────────── */
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
+    @media (min-width: 640px) {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
   }
 
   .flex {
@@ -160,18 +170,142 @@
     min-width: 0;
   }
 
-  @media (min-width: 640px) {
-    .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
-      padding-right: 1.5rem;
-    }
+  /* Grid background */
+  .grid-bg {
+    background-image:
+      linear-gradient(0deg, transparent 24%, oklch(0.62 0.22 200 / 0.06) 25%, oklch(0.62 0.22 200 / 0.06) 26%, transparent 27%, transparent 74%, oklch(0.62 0.22 200 / 0.06) 75%, oklch(0.62 0.22 200 / 0.06) 76%, transparent 77%),
+      linear-gradient(90deg, transparent 24%, oklch(0.62 0.22 200 / 0.06) 25%, oklch(0.62 0.22 200 / 0.06) 26%, transparent 27%, transparent 74%, oklch(0.62 0.22 200 / 0.06) 75%, oklch(0.62 0.22 200 / 0.06) 76%, transparent 77%);
+    background-size: 60px 60px;
   }
 
-  @media (min-width: 1024px) {
-    .container {
-      padding-left: 2rem; /* 32px - desktop padding */
-      padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
-    }
+  /* Dashboard card */
+  .fin-card {
+    @apply bg-card text-card-foreground rounded-xl border border-border p-5 shadow-lg;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .fin-card:hover {
+    border-color: oklch(0.62 0.22 200 / 0.4);
+    box-shadow: 0 0 20px oklch(0.62 0.22 200 / 0.1);
+  }
+
+  /* Geometric accent overlay */
+  .geo-accent {
+    position: relative;
+    overflow: hidden;
+  }
+  .geo-accent::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, oklch(0.62 0.22 200 / 0.08) 0%, oklch(0.62 0.25 330 / 0.08) 100%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* Price display */
+  .price-value {
+    @apply text-2xl font-bold;
+    color: oklch(0.62 0.22 200);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    text-align: left;
+  }
+
+  .metric-up { color: oklch(0.65 0.20 150); }
+  .metric-down { color: oklch(0.60 0.22 25); }
+
+  /* Bottom navigation */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: oklch(0.11 0.025 262 / 0.95);
+    border-top: 1px solid oklch(0.20 0.025 262);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bottom-nav-item {
+    @apply flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-lg transition-all duration-200;
+    color: oklch(0.55 0.01 65);
+    min-width: 56px;
+  }
+  .bottom-nav-item.active {
+    color: oklch(0.62 0.22 200);
+  }
+  .bottom-nav-item:active {
+    transform: scale(0.95);
+  }
+
+  /* Page content with bottom nav padding */
+  .page-content {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    min-height: 100dvh;
+  }
+
+  /* Glow effects */
+  .glow-cyan {
+    box-shadow: 0 0 20px oklch(0.62 0.22 200 / 0.3);
+  }
+  .glow-pink {
+    box-shadow: 0 0 20px oklch(0.62 0.25 330 / 0.3);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, oklch(0.62 0.22 200), oklch(0.62 0.25 330));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Input RTL */
+  input[type="text"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    direction: rtl;
+    text-align: right;
+  }
+
+  /* Number inputs LTR */
+  input[type="number"] {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply animate-pulse rounded-lg;
+    background: oklch(0.17 0.025 262);
+  }
+
+  /* Badge variants */
+  .badge-cyan {
+    background: oklch(0.62 0.22 200 / 0.15);
+    color: oklch(0.62 0.22 200);
+    border: 1px solid oklch(0.62 0.22 200 / 0.3);
+    @apply text-xs px-2 py-0.5 rounded-full;
+  }
+  .badge-pink {
+    background: oklch(0.62 0.25 330 / 0.15);
+    color: oklch(0.62 0.25 330);
+    border: 1px solid oklch(0.62 0.25 330 / 0.3);
+    @apply text-xs px-2 py-0.5 rounded-full;
+  }
+  .badge-green {
+    background: oklch(0.65 0.20 150 / 0.15);
+    color: oklch(0.65 0.20 150);
+    border: 1px solid oklch(0.65 0.20 150 / 0.3);
+    @apply text-xs px-2 py-0.5 rounded-full;
+  }
+  .badge-red {
+    background: oklch(0.60 0.22 25 / 0.15);
+    color: oklch(0.60 0.22 25);
+    border: 1px solid oklch(0.60 0.22 25 / 0.3);
+    @apply text-xs px-2 py-0.5 rounded-full;
   }
 }
