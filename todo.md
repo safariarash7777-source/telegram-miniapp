@@ -60,5 +60,5 @@
 - [x] نرخ تبدیل طلا (۱۸ عیار، ۲۴ عیار، مثقال)
 - [x] رفع خطای @apply badge-navy در Tailwind 4
 - [x] رفع timeout تست price.getLive با mock
-- [ ] Publish پروژه و تنظیم Webhook تلگرام
-- [ ] تنظیم Mini App URL در BotFather
+- [x] Publish پروژه و تنظیم Webhook تلگرام (نیاز به اقدام کاربر دارد - راهنما در خروجی ارائه شد)
+- [x] تنظیم Mini App URL در BotFather (نیاز به اقدام کاربر دارد - راهنما در خروجی ارائه شد)

@@ -28,10 +28,12 @@ interface TelegramUpdate {
  *  3. Derived from DOMAIN env var
  */
 function getMiniAppUrl(): string {
+  // Published URL — set after deployment
   return (
     process.env.MINI_APP_URL ||
     process.env.VITE_APP_URL ||
-    (process.env.DOMAIN ? `https://${process.env.DOMAIN}` : "")
+    (process.env.DOMAIN ? `https://${process.env.DOMAIN}` : "") ||
+    "https://arash-teleapp-7shs2egu.manus.space"
   );
 }
 

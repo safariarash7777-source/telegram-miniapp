@@ -53,15 +53,11 @@ export default function ProfileSetup() {
       <div className="w-full max-w-sm relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-            style={{
-              background: "rgba(212,162,43,0.12)",
-              border: "1px solid rgba(212,162,43,0.30)",
-            }}
-          >
-            <UserCheck size={28} style={{ color: "var(--gold-soft)" }} />
-          </div>
+          <img
+            src="/manus-storage/mark-white_d3b7a24a.png"
+            alt="لوگو"
+            className="w-14 h-14 object-contain mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-on-navy)" }}>
             تکمیل پروفایل
           </h1>

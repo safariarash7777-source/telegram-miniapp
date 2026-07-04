@@ -193,17 +193,13 @@ export default function Dashboard() {
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "rgba(212,162,43,0.12)", border: "1px solid rgba(212,162,43,0.25)" }}
-          >
-            <TrendingUp size={16} style={{ color: "var(--gold-soft)" }} />
-          </div>
-          <div>
-            <p className="text-xs font-black" style={{ color: "var(--text)" }}>آرش صفری</p>
-            <p className="text-[10px]" style={{ color: "var(--text-3)" }}>مشاور سرمایه‌گذاری</p>
-          </div>
+        <div className="flex items-center">
+          <img
+            src="/manus-storage/logotype-gold_c20a9ae8.png"
+            alt="آرش صفری"
+            className="h-8 w-auto object-contain"
+            style={{ maxWidth: 140 }}
+          />
         </div>
         <div className="flex items-center gap-2">
           {prices?.source && (

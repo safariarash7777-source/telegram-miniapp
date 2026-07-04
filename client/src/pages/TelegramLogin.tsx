@@ -24,38 +24,34 @@ export default function TelegramLogin() {
       />
 
       {/* Header */}
-      <header
-        className="relative z-10 flex items-center justify-between px-5 pt-8 pb-4"
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(212,162,43,0.15)", border: "1px solid rgba(212,162,43,0.3)" }}
-          >
-            <TrendingUp size={20} style={{ color: "var(--gold-soft)" }} />
-          </div>
-          <div>
-            <p className="text-xs font-bold" style={{ color: "var(--gold-soft)" }}>آرش صفری</p>
-            <p className="text-[10px]" style={{ color: "rgba(248,250,252,0.5)" }}>مشاور سرمایه‌گذاری</p>
-          </div>
-        </div>
+      <header className="relative z-10 flex items-center justify-center px-5 pt-10 pb-4">
+        <img
+          src="/manus-storage/logotype-gold_c20a9ae8.png"
+          alt="آرش صفری"
+          className="h-10 w-auto object-contain"
+          style={{ maxWidth: 180 }}
+        />
       </header>
 
       {/* Hero */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-5 py-8">
         <div className="w-full max-w-sm">
-          {/* Eyebrow */}
-          <p className="eyebrow text-center mb-3">مینی اپ تلگرام</p>
-
-          {/* Title */}
-          <h1
-            className="text-3xl font-black text-center mb-3 leading-snug"
-            style={{ color: "var(--text-on-navy)" }}
-          >
-            مشاوره سرمایه‌گذاری
-            <br />
-            <span style={{ color: "var(--gold-soft)" }}>حرفه‌ای</span>
-          </h1>
+          {/* Logo mark + title */}
+          <div className="flex flex-col items-center mb-6">
+            <img
+              src="/manus-storage/mark-white_d3b7a24a.png"
+              alt="لوگو"
+              className="w-16 h-16 object-contain mb-4"
+            />
+            <h1
+              className="text-3xl font-black text-center leading-snug"
+              style={{ color: "var(--text-on-navy)" }}
+            >
+              مشاوره سرمایه‌گذاری
+              <br />
+              <span style={{ color: "var(--gold-soft)" }}>حرفه‌ای</span>
+            </h1>
+          </div>
 
           <p className="text-center text-sm mb-8" style={{ color: "rgba(248,250,252,0.65)" }}>
             برای دسترسی به این سرویس، لطفاً از طریق تلگرام وارد شوید
