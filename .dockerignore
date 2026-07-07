@@ -1,0 +1,28 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies & build output (rebuilt inside the image)
+node_modules
+**/node_modules
+.pnpm-store
+dist
+build
+
+# Local env files — never bake secrets into the image
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Logs & Manus debug artifacts
+.manus-logs
+logs
+*.log
+
+# Editor / OS noise
+.vscode
+.idea
+*.swp
+.DS_Store
