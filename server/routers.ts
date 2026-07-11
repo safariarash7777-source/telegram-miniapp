@@ -126,6 +126,24 @@ export const appRouter = router({
             telegramUsername: input.telegramUsername,
           });
 
+          // Webhook: copy lead to Supabase platform (fire-and-forget)
+          const PLATFORM_URL = process.env.PLATFORM_WEBHOOK_URL || "https://portfolio-platform-fawn.vercel.app";
+          fetch(`${PLATFORM_URL}/api/leads/webhook`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Webhook-Secret": process.env.PLATFORM_WEBHOOK_SECRET || "" },
+            body: JSON.stringify({
+              source: "miniapp",
+              name: input.name,
+              phone: input.phone,
+              topic: input.topic,
+              message: input.message || null,
+              preferred_date: input.preferredDate || null,
+              preferred_time: input.preferredTime || null,
+              telegram_username: input.telegramUsername || null,
+              telegram_id: input.telegramId || null,
+            }),
+          }).catch(err => console.error("[Lead webhook] Failed:", err));
+
           return { success: true, message: "درخواست مشاوره شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت." };
         } catch (error) {
           console.error("Failed to create consultation:", error);
