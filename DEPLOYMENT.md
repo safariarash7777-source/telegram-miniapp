@@ -64,11 +64,14 @@
 
 | متغیر | مقدار |
 |---|---|
-| `ADMIN_SECRET` | یک رشته‌ی تصادفی بلند (override پیش‌فرض hardcode) |
+| `ADMIN_SECRET` | رشته‌ی تصادفی بلند — فقط دروازه‌ی endpoint راه‌اندازی `set-webhook` است؛ تا ست نشود آن endpoint کلا غیرفعال است |
+| `JWT_SECRET` | رشته‌ی تصادفی برای امضای نشست کاربران (اگر ست نشود، به‌طور امن از bot token مشتق می‌شود) |
+| `TELEGRAM_WEBHOOK_SECRET` | secret token وب‌هوک (اگر ست نشود، از bot token مشتق می‌شود — نیازی به ست کردن نیست) |
 
-**اختیاری (لوگو/فونت سفارشی از Manus):** اگر کلیدهای پروژه‌ی Manus را داری،
-`BUILT_IN_FORGE_API_URL` و `BUILT_IN_FORGE_API_KEY` را ست کن. بدون این‌ها اپ کار
-می‌کند ولی فونت به Vazirmatn برمی‌گردد و بعضی لوگوها placeholder می‌شوند.
+**فونت و لوگو:** دیگر به Manus وابسته نیستند — فایل‌ها داخل خود ریپو در
+`client/public/fonts` و `client/public/images` قرار دارند. اگر هنوز کامیت
+نشده‌اند، یک بار `sh scripts/fetch-brand-assets.sh` را روی یک شبکه‌ی آزاد اجرا
+و خروجی را کامیت کن (تا وقتی دیپلوی قدیمی Manus زنده است).
 
 > **متغیرهای `VITE_*`**: این‌ها در زمان **build** در فرانت جاسازی می‌شوند. اگر
 > لازم داری (اکثراً اختیاری‌اند)، در Coolify به‌صورت **Build Variable** ست‌شان کن،
@@ -98,13 +101,17 @@
 
 ## گام ۶ — اتصال بات تلگرام (بعد از deploy)
 
-1. **ثبت webhook** — یک بار این درخواست را بزن (دامنه‌ی خودت را جایگزین کن):
+1. **ثبت webhook** — این endpoint با `ADMIN_SECRET` محافظت می‌شود و آدرس وب‌هوک
+   را خودش از `MINI_APP_URL` می‌سازد (از body گرفته نمی‌شود تا قابل سوءاستفاده
+   نباشد). یک بار این درخواست را بزن:
 
    ```bash
    curl -X POST https://app.example.com/api/telegram/set-webhook \
-     -H "Content-Type: application/json" \
-     -d '{"webhookUrl":"https://app.example.com/api/telegram/webhook"}'
+     -H "X-Admin-Secret: <همان ADMIN_SECRET که در env ست کردی>"
    ```
+
+   این کار وب‌هوک را همراه یک secret token ثبت می‌کند؛ از آن به بعد سرور فقط
+   درخواست‌هایی را می‌پذیرد که واقعا از تلگرام آمده باشند (بقیه 403 می‌گیرند).
 
 2. **تنظیم Mini App در BotFather** — در BotFather دستور `/newapp` (یا از منوی
    Bot Settings → Menu Button/Web App) و آدرس `https://app.example.com` را ست کن.

@@ -1,6 +1,12 @@
 # نقشه راه توسعه «سوپر مینی‌اپ» آرش صفری
 
-سند نیازسنجی و نقشه راه فنی برای تحویل به Manus جهت توسعه. هدف: تبدیل مینی‌اپ فعلی به سوپر اپ مالی شخصی (Personal Finance) برای مخاطبان تلگرام.
+سند نیازسنجی و نقشه راه فنی. هدف: تبدیل مینی‌اپ فعلی به سوپر اپ مالی شخصی (Personal Finance) برای مخاطبان تلگرام.
+
+> **به‌روزرسانی (تیر ۱۴۰۵ / Jul 2026):**
+> - **فاز ۰ (امنیت و پی‌ریزی) انجام شد** — نشست سروری مبتنی بر initData، حذف کامل `telegramId` از ورودی‌ها، نقش ادمین، secret وب‌هوک، rate-limit/helmet، ایندکس‌ها. جزئیات در بخش فاز ۰ پایین.
+> - **استراتژی هاستینگ عوض شد:** دیپلوی روی VPS شخصی با Coolify (`Dockerfile` + `DEPLOYMENT.md`). فونت/لوگو داخل ریپو vendor می‌شوند (`scripts/fetch-brand-assets.sh`) و وابستگی runtime به Manus حذف شد.
+> - **پیامد زیرساختی:** به‌جای cron مانوس (`heartbeat.ts`) از node-cron داخل پروسه استفاده شود؛ به‌جای استوریج Forge برای فیش‌های پرداخت، والیوم لوکال Docker (`/data/uploads`)؛ نوتیف ادمین از طریق خود بات تلگرام.
+> - **قانون سخت برای همه فیچرهای جدید:** هیچ پروسیجری هویت (`telegramId`) را از ورودی کلاینت نگیرد — همیشه از `ctx.telegramSession` (پروسیجرهای `telegramProcedure`/`telegramAdminProcedure` در `server/_core/trpc.ts`).
 
 ## Context — چرا این توسعه؟
 
@@ -34,7 +40,9 @@
 
 ## نقشه راه — ۶ فاز
 
-### فاز ۰: امنیت و پی‌ریزی (پیش‌نیاز همه چیز — بدون این فاز هیچ قابلیت پولی قابل عرضه نیست)
+### فاز ۰: امنیت و پی‌ریزی — ✅ بخش سروری انجام شد
+
+وضعیت: احراز هویت نشستی (`telegramAuth.login` + کوکی `tg_session`)، پروسیجرهای محافظت‌شده، نقش ادمین (`telegram_users.role` + auto-promote از `TELEGRAM_ADMIN_CHAT_ID`)، secret وب‌هوک، محافظت `set-webhook` با `ADMIN_SECRET`، حذف `adminSecret` هاردکد، helmet + rate-limit + کاهش body limit، ایندکس‌های `telegramId` و تست‌های authorization — همگی پیاده و تست شده‌اند. **باقی‌مانده از فاز ۰ (فرانت):** حذف کد مرده قالب (ComponentShowcase و...) و code-splitting per-route.
 
 **احراز هویت واقعی تلگرام:**
 - کلاینت در شروع، `initData` را به `telegramAuth.verifyInitData` بفرستد؛ سرور بعد از تایید HMAC (با `crypto.timingSafeEqual` و کاهش عمر به ~۱ ساعت)، یک **session JWT** با هِلپر موجود `sdk.ts` بسازد و در کوکی `app_session_id` بگذارد (زیرساخت کوکی/JWT در `server/_core/sdk.ts` و `cookies.ts` آماده است).
