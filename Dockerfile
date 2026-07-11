@@ -48,6 +48,11 @@ ENV VITE_APP_URL=$VITE_APP_URL \
 # `pnpm build` = vite build (-> dist/public) + esbuild (-> dist/index.js)
 RUN pnpm build
 
+# Drop devDependencies so the runner stage only ships production packages
+# (drizzle-kit is a production dependency — the entrypoint needs it for
+# migrations). This cuts the final image size drastically.
+RUN pnpm prune --prod
+
 # -----------------------------------------------------------------------------
 # Stage 2 — runner: minimal runtime with the build output
 # -----------------------------------------------------------------------------
@@ -60,16 +65,23 @@ WORKDIR /app
 
 # node_modules is needed at runtime because the server is bundled with
 # `--packages=external`, and drizzle-kit (used by the entrypoint to run
-# migrations) lives in node_modules as well.
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/drizzle ./drizzle
-COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
-COPY package.json pnpm-lock.yaml ./
-COPY docker-entrypoint.sh ./docker-entrypoint.sh
+# migrations) lives in node_modules as well (pruned to production deps in
+# the builder stage).
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/drizzle ./drizzle
+COPY --from=builder --chown=node:node /app/drizzle.config.ts ./drizzle.config.ts
+COPY --chown=node:node package.json pnpm-lock.yaml ./
+COPY --chown=node:node docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
+USER node
+
 EXPOSE 3000
+
+# The runtime image has no curl; use node's built-in fetch for the check.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/telegram/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 # Runs pending DB migrations (if DATABASE_URL is set) then starts the server.
 ENTRYPOINT ["./docker-entrypoint.sh"]

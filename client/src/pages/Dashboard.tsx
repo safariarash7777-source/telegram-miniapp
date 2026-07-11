@@ -195,7 +195,7 @@ export default function Dashboard() {
       >
         <div className="flex items-center">
           <img
-            src="/manus-storage/logotype-gold_c20a9ae8.png"
+            src="/images/logotype-gold_c20a9ae8.png"
             alt="آرش صفری"
             className="h-8 w-auto object-contain"
             style={{ maxWidth: 140 }}
