@@ -1,8 +1,24 @@
 // Telegram Bot API helper — server-side only
+import { createHmac } from "crypto";
+
 const API_BASE = "https://api.telegram.org/bot";
 
 function getToken(): string | null {
   return process.env.TELEGRAM_BOT_TOKEN ?? null;
+}
+
+/**
+ * Secret token Telegram echoes back in the X-Telegram-Bot-Api-Secret-Token
+ * header on every webhook call, proving the update really comes from
+ * Telegram. Prefers TELEGRAM_WEBHOOK_SECRET; otherwise derived from the bot
+ * token so no extra env var is required.
+ */
+export function getWebhookSecret(): string | null {
+  const explicit = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (explicit) return explicit;
+  const token = getToken();
+  if (!token) return null;
+  return createHmac("sha256", "tg-webhook-secret").update(token).digest("hex");
 }
 
 async function callApi<T = unknown>(
@@ -42,6 +58,7 @@ export async function setWebhook(webhookUrl: string): Promise<boolean> {
   const { ok } = await callApi("setWebhook", {
     url: webhookUrl,
     allowed_updates: ["message", "callback_query"],
+    secret_token: getWebhookSecret() ?? undefined,
   });
   return ok;
 }

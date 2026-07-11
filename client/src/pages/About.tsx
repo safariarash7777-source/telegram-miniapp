@@ -57,7 +57,7 @@ export default function About() {
 
   // Fetch latest Telegram channel posts via backend
   const { data: channelPosts, isLoading, refetch } = trpc.social.getChannelPosts.useQuery(
-    { channel: "arashsafariiiiiiii", limit: 8 },
+    { limit: 8 },
     { staleTime: 5 * 60 * 1000 }
   );
 

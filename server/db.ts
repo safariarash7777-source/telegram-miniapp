@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users,
@@ -90,6 +90,19 @@ export async function createOrUpdateTelegramUser(data: InsertTelegramUser) {
   } catch (error) {
     console.error("[Database] Failed to create/update telegram user:", error);
     throw error;
+  }
+}
+
+/** Promote a registered telegram user to admin (idempotent). */
+export async function promoteTelegramUserToAdmin(telegramId: string) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.update(telegramUsers)
+      .set({ role: "admin" })
+      .where(eq(telegramUsers.telegramId, telegramId));
+  } catch (error) {
+    console.error("[Database] Failed to promote telegram user:", error);
   }
 }
 
@@ -195,22 +208,27 @@ export async function addPortfolioAsset(data: InsertPortfolioAsset) {
   }
 }
 
-export async function updatePortfolioAsset(id: number, data: Partial<InsertPortfolioAsset>) {
+// Ownership-scoped: the WHERE clause pins the row to the owner's telegramId,
+// so one user can never touch another user's assets by guessing numeric ids.
+export async function updatePortfolioAsset(id: number, telegramId: string, data: Partial<InsertPortfolioAsset>) {
   const db = await getDb();
   if (!db) return undefined;
   try {
-    return await db.update(portfolioAssets).set({ ...data, updatedAt: new Date() }).where(eq(portfolioAssets.id, id));
+    return await db.update(portfolioAssets)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(portfolioAssets.id, id), eq(portfolioAssets.telegramId, telegramId)));
   } catch (error) {
     console.error("[Database] Failed to update portfolio asset:", error);
     throw error;
   }
 }
 
-export async function deletePortfolioAsset(id: number) {
+export async function deletePortfolioAsset(id: number, telegramId: string) {
   const db = await getDb();
   if (!db) return undefined;
   try {
-    return await db.delete(portfolioAssets).where(eq(portfolioAssets.id, id));
+    return await db.delete(portfolioAssets)
+      .where(and(eq(portfolioAssets.id, id), eq(portfolioAssets.telegramId, telegramId)));
   } catch (error) {
     console.error("[Database] Failed to delete portfolio asset:", error);
     throw error;

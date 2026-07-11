@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -32,9 +34,32 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Security headers. CSP is disabled because the SPA relies on inline
+  // styles/scripts and the external Telegram SDK; COEP/CORP relaxed so the
+  // app keeps working inside Telegram's WebView.
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }));
+
+  // Trust the reverse proxy (Coolify/Traefik) so rate limiting and secure
+  // cookies see the real client IP and protocol.
+  app.set("trust proxy", 1);
+
+  // Global API rate limit; generous enough for normal mini-app usage.
+  app.use("/api", rateLimit({
+    windowMs: 60_000,
+    limit: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+  }));
+
+  // File uploads will use dedicated multipart endpoints later; JSON bodies
+  // never need to be anywhere near 50mb.
+  app.use(express.json({ limit: "2mb" }));
+  app.use(express.urlencoded({ limit: "2mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   // Telegram webhook

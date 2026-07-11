@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useTelegramWebApp, TelegramUser } from "@/hooks/useTelegramWebApp";
 import { trpc } from "@/lib/trpc";
 
@@ -14,8 +14,10 @@ interface TelegramContextValue {
     username?: string | null;
   } | null;
   isLoading: boolean;
-  /** کاربر هویت تلگرام دارد — gate اصلی ورود */
+  /** نشست تلگرام سمت سرور تایید شده — gate اصلی ورود */
   isVerified: boolean;
+  /** کاربر ادمین اپ است (بر اساس نشست سروری) */
+  isAdmin: boolean;
   /** کاربر قبلاً نام و شماره را ثبت کرده */
   isRegistered: boolean;
   /** کاربر جدید است و هنوز پروفایل کامل نکرده */
@@ -27,87 +29,93 @@ interface TelegramContextValue {
 
 const TelegramContext = createContext<TelegramContextValue | null>(null);
 
-// Dev mode mock user for testing outside Telegram
-const DEV_MOCK_USER: TelegramUser = {
-  id: 999999999,
-  first_name: "آرش",
-  last_name: "صفری",
-  username: "arash_safari_dev",
-  language_code: "fa",
-};
-
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
   const twa = useTelegramWebApp();
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionUser, setSessionUser] = useState<TelegramUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [registeredUser, setRegisteredUser] = useState<TelegramContextValue["registeredUser"]>(null);
+  const loginStarted = useRef(false);
 
-  // Use real Telegram user or dev mock
-  const telegramUser = twa.isTelegram ? twa.user : (import.meta.env.DEV ? DEV_MOCK_USER : null);
-  const telegramId = telegramUser ? String(telegramUser.id) : null;
-
-  // ✅ کاربر هویت تلگرام دارد — این gate اصلی ورود است
-  const isVerified = !!telegramUser;
-
-  const getUserQuery = trpc.telegramAuth.getUser.useQuery(
-    { telegramId: telegramId ?? "" },
-    {
-      enabled: !!telegramId,
-      retry: 1,
-      // اگر DB در دسترس نبود، کاربر همچنان می‌تواند وارد شود
-      retryDelay: 1000,
-    }
-  );
-
+  const utils = trpc.useUtils();
+  const loginMutation = trpc.telegramAuth.login.useMutation();
+  const devLoginMutation = trpc.telegramAuth.devLogin.useMutation();
   const registerMutation = trpc.telegramAuth.registerUser.useMutation();
 
+  // فلوی ورود: initData به سرور ارسال و پس از تایید امضا، کوکی نشست ست می‌شود.
+  // هویت کاربر همیشه از پاسخ سرور می‌آید، نه از initDataUnsafe.
   useEffect(() => {
-    if (getUserQuery.data !== undefined) {
-      setRegisteredUser(getUserQuery.data as any);
-      setIsLoading(false);
-    } else if (getUserQuery.error) {
-      // ✅ حتی اگر DB خطا داد، کاربر می‌تواند وارد شود
-      console.warn("[TelegramContext] DB error, allowing entry anyway:", getUserQuery.error.message);
-      setIsLoading(false);
-    } else if (!telegramId) {
-      setIsLoading(false);
-    }
-  }, [getUserQuery.data, getUserQuery.error, telegramId]);
+    if (loginStarted.current) return;
+    loginStarted.current = true;
 
-  // اگر telegramId نداشتیم، loading را false کن
-  useEffect(() => {
-    if (!telegramId) setIsLoading(false);
-  }, [telegramId]);
+    const applySession = (payload: {
+      telegramUser: { telegramId: string; firstName: string; lastName?: string; username?: string; isAdmin: boolean };
+      profile: TelegramContextValue["registeredUser"];
+    }) => {
+      setSessionUser({
+        id: Number(payload.telegramUser.telegramId),
+        first_name: payload.telegramUser.firstName,
+        last_name: payload.telegramUser.lastName,
+        username: payload.telegramUser.username,
+      });
+      setIsAdmin(payload.telegramUser.isAdmin);
+      setRegisteredUser(payload.profile);
+    };
 
-  // Timeout: بعد از ۳ ثانیه loading را false کن تا کاربر block نشود
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 3000);
-    return () => clearTimeout(timer);
+    const boot = async () => {
+      try {
+        if (twa.isTelegram && twa.initData) {
+          const result = await loginMutation.mutateAsync({ initData: twa.initData });
+          applySession(result as any);
+          return;
+        }
+        // خارج از تلگرام: اول نشست موجود، بعد dev login (فقط در حالت توسعه)
+        const existing = await utils.client.telegramAuth.session.query();
+        if (existing) {
+          applySession(existing as any);
+          return;
+        }
+        if (import.meta.env.DEV) {
+          const result = await devLoginMutation.mutateAsync();
+          applySession(result as any);
+        }
+      } catch (error) {
+        console.warn("[TelegramContext] Login failed:", error);
+        // fallback: شاید نشست قبلی هنوز معتبر باشد
+        try {
+          const existing = await utils.client.telegramAuth.session.query();
+          if (existing) applySession(existing as any);
+        } catch {
+          /* stay logged out */
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void boot();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const register = async (name: string, phone: string) => {
-    if (!telegramUser) throw new Error("No Telegram user");
-    await registerMutation.mutateAsync({
-      telegramId: String(telegramUser.id),
-      firstName: telegramUser.first_name,
-      lastName: telegramUser.last_name,
-      username: telegramUser.username,
-      name,
-      phone,
-    });
-    await getUserQuery.refetch();
+    if (!sessionUser) throw new Error("No Telegram session");
+    await registerMutation.mutateAsync({ name, phone });
+    const refreshed = await utils.client.telegramAuth.session.query();
+    if (refreshed) setRegisteredUser(refreshed.profile as any);
   };
 
+  const isVerified = !!sessionUser;
   const isRegistered = !!registeredUser;
-  // کاربر جدید است اگر هویت تلگرام دارد اما هنوز ثبت نشده
-  const needsProfile = isVerified && !isRegistered && !getUserQuery.isLoading;
+  const needsProfile = isVerified && !isRegistered;
 
   return (
     <TelegramContext.Provider
       value={{
-        telegramUser,
+        telegramUser: sessionUser,
         registeredUser,
         isLoading,
         isVerified,
+        isAdmin,
         isRegistered,
         needsProfile,
         isTelegram: twa.isTelegram,

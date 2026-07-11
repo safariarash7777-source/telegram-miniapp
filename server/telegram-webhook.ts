@@ -1,5 +1,14 @@
+import { timingSafeEqual } from "crypto";
 import express, { Request, Response } from "express";
-import { sendMessage, answerCallbackQuery } from "./telegram";
+import { sendMessage, answerCallbackQuery, setWebhook, getWebhookSecret } from "./telegram";
+
+/** Constant-time string comparison (length-safe). */
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
 
 export const telegramWebhookRouter = express.Router();
 
@@ -32,12 +41,22 @@ function getMiniAppUrl(): string {
   return (
     process.env.MINI_APP_URL ||
     process.env.VITE_APP_URL ||
-    (process.env.DOMAIN ? `https://${process.env.DOMAIN}` : "") ||
-    "https://arash-teleapp-7shs2egu.manus.space"
+    (process.env.DOMAIN ? `https://${process.env.DOMAIN}` : "")
   );
 }
 
 telegramWebhookRouter.post("/webhook", async (req: Request, res: Response) => {
+  // Telegram echoes back the secret_token we registered via setWebhook.
+  // Reject anything that doesn't carry it — otherwise anyone who knows the
+  // URL can inject fake bot updates.
+  const expectedSecret = getWebhookSecret();
+  if (expectedSecret) {
+    const provided = req.header("x-telegram-bot-api-secret-token") ?? "";
+    if (!safeEqual(provided, expectedSecret)) {
+      return res.status(403).json({ ok: false, error: "Forbidden" });
+    }
+  }
+
   try {
     const update: TelegramUpdate = req.body;
     const appUrl = getMiniAppUrl();
@@ -125,27 +144,33 @@ telegramWebhookRouter.get("/health", (_req: Request, res: Response) => {
   });
 });
 
-// Endpoint to set the webhook URL (call once after publishing)
+/**
+ * One-time setup endpoint: registers this app's own /api/telegram/webhook URL
+ * (derived from MINI_APP_URL — never from the request body, so it cannot be
+ * pointed at an attacker's server) with the secret_token attached.
+ *
+ * Guarded by ADMIN_SECRET: the endpoint is disabled unless the env var is set,
+ * and the caller must send it in the X-Admin-Secret header.
+ */
 telegramWebhookRouter.post("/set-webhook", async (req: Request, res: Response) => {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) {
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret) {
+    return res.status(403).json({ ok: false, error: "set-webhook is disabled (ADMIN_SECRET not configured)" });
+  }
+  const provided = req.header("x-admin-secret") ?? "";
+  if (!safeEqual(provided, adminSecret)) {
+    return res.status(403).json({ ok: false, error: "Forbidden" });
+  }
+
+  if (!process.env.TELEGRAM_BOT_TOKEN) {
     return res.status(500).json({ ok: false, error: "TELEGRAM_BOT_TOKEN not set" });
   }
-
-  const { webhookUrl } = req.body;
-  if (!webhookUrl) {
-    return res.status(400).json({ ok: false, error: "webhookUrl is required" });
+  const appUrl = getMiniAppUrl();
+  if (!appUrl) {
+    return res.status(400).json({ ok: false, error: "MINI_APP_URL not set" });
   }
 
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: webhookUrl }),
-    });
-    const data = await response.json();
-    return res.json(data);
-  } catch (error) {
-    return res.status(500).json({ ok: false, error: String(error) });
-  }
+  const webhookUrl = `${appUrl.replace(/\/$/, "")}/api/telegram/webhook`;
+  const ok = await setWebhook(webhookUrl);
+  return res.json({ ok, webhookUrl });
 });

@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 /**
  * Verifies Telegram WebApp initData using HMAC-SHA256.
@@ -23,9 +23,12 @@ export function verifyTelegramInitData(initData: string, botToken: string): bool
 
     // HMAC-SHA256 with secret key = HMAC-SHA256("WebAppData", botToken)
     const secretKey = createHmac("sha256", "WebAppData").update(botToken).digest();
-    const expectedHash = createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+    const expectedHash = createHmac("sha256", secretKey).update(dataCheckString).digest();
 
-    return expectedHash === hash;
+    // Constant-time comparison to avoid timing side channels.
+    const providedHash = Buffer.from(hash, "hex");
+    if (providedHash.length !== expectedHash.length) return false;
+    return timingSafeEqual(expectedHash, providedHash);
   } catch {
     return false;
   }
@@ -53,9 +56,11 @@ export function parseTelegramUser(initData: string): {
 }
 
 /**
- * Check if initData is expired (older than 24 hours).
+ * Check if initData is expired. Telegram issues fresh initData every time the
+ * Mini App opens, so a short window is safe; the long-lived state lives in our
+ * own session cookie instead.
  */
-export function isInitDataExpired(initData: string, maxAgeSeconds = 86400): boolean {
+export function isInitDataExpired(initData: string, maxAgeSeconds = 3600): boolean {
   try {
     const params = new URLSearchParams(initData);
     const authDate = params.get("auth_date");
