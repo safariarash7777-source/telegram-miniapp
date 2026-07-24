@@ -202,8 +202,8 @@ export const appRouter = router({
               message: input.message || null,
               preferred_date: input.preferredDate || null,
               preferred_time: input.preferredTime || null,
-              telegram_username: input.telegramUsername || null,
-              telegram_id: input.telegramId || null,
+              telegram_username: s.username || null,
+              telegram_id: s.telegramId || null,
             }),
           }).catch(err => console.error("[Lead webhook] Failed:", err));
 
