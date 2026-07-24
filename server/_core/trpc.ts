@@ -43,3 +43,46 @@ export const adminProcedure = t.procedure.use(
     });
   }),
 );
+
+/**
+ * Requires a verified Telegram Mini App session (set by telegramAuth.login
+ * after server-side initData verification). The telegramId in ctx comes from
+ * the signed session cookie — never from client input.
+ */
+export const telegramProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+
+    if (!ctx.telegramSession) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        telegramSession: ctx.telegramSession,
+      },
+    });
+  }),
+);
+
+/** Requires a Telegram session whose user is the app admin. */
+export const telegramAdminProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+
+    if (!ctx.telegramSession) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+    }
+    if (!ctx.telegramSession.isAdmin) {
+      throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        telegramSession: ctx.telegramSession,
+      },
+    });
+  }),
+);

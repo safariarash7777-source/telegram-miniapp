@@ -57,7 +57,7 @@ export default function About() {
 
   // Fetch latest Telegram channel posts via backend
   const { data: channelPosts, isLoading, refetch } = trpc.social.getChannelPosts.useQuery(
-    { channel: "arashsafariiiiiiii", limit: 8 },
+    { limit: 8 },
     { staleTime: 5 * 60 * 1000 }
   );
 
@@ -96,7 +96,7 @@ export default function About() {
       >
         <div className="flex items-center gap-3 mb-1">
           <img
-            src="/manus-storage/logo-circle-dark_9f5eb9e0.jpeg"
+            src="/images/logo-circle-dark_9f5eb9e0.jpeg"
             alt="آرش صفری"
             className="w-14 h-14 rounded-full object-cover"
             style={{ border: "2px solid var(--gold-soft)" }}

@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -24,6 +24,7 @@ export const telegramUsers = mysqlTable("telegram_users", {
   username: varchar("username", { length: 255 }),
   name: varchar("name", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }).notNull(),
+  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -44,7 +45,9 @@ export const consultations = mysqlTable("consultations", {
   status: mysqlEnum("status", ["pending", "confirmed", "completed", "cancelled"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, table => [
+  index("consultations_telegramId_idx").on(table.telegramId),
+]);
 
 export type Consultation = typeof consultations.$inferSelect;
 export type InsertConsultation = typeof consultations.$inferInsert;
@@ -76,7 +79,9 @@ export const portfolioAssets = mysqlTable("portfolio_assets", {
   currentPrice: decimal("currentPrice", { precision: 18, scale: 2 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, table => [
+  index("portfolio_assets_telegramId_idx").on(table.telegramId),
+]);
 
 export type PortfolioAsset = typeof portfolioAssets.$inferSelect;
 export type InsertPortfolioAsset = typeof portfolioAssets.$inferInsert;

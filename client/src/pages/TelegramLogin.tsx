@@ -26,7 +26,7 @@ export default function TelegramLogin() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-center px-5 pt-10 pb-4">
         <img
-          src="/manus-storage/logotype-gold_c20a9ae8.png"
+          src="/images/logotype-gold_c20a9ae8.png"
           alt="آرش صفری"
           className="h-10 w-auto object-contain"
           style={{ maxWidth: 180 }}
@@ -39,7 +39,7 @@ export default function TelegramLogin() {
           {/* Logo mark + title */}
           <div className="flex flex-col items-center mb-6">
             <img
-              src="/manus-storage/mark-white_d3b7a24a.png"
+              src="/images/mark-white_d3b7a24a.png"
               alt="لوگو"
               className="w-16 h-16 object-contain mb-4"
             />

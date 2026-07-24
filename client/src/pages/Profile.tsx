@@ -27,10 +27,9 @@ export default function Profile() {
 
   const telegramId = telegramUser ? String(telegramUser.id) : registeredUser?.telegramId ?? "";
 
-  const consultationsQuery = trpc.consultation.myList.useQuery(
-    { telegramId },
-    { enabled: !!telegramId }
-  );
+  const consultationsQuery = trpc.consultation.myList.useQuery(undefined, {
+    enabled: !!telegramId,
+  });
 
   const consultations = consultationsQuery.data ?? [];
   const stats = {

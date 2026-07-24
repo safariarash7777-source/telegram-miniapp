@@ -51,8 +51,6 @@ export default function Consultation() {
   const handleSubmit = () => {
     if (!isValid || submitMutation.isPending) return;
     submitMutation.mutate({
-      telegramId: telegramUser ? String(telegramUser.id) : undefined,
-      telegramUsername: telegramUser?.username,
       name: form.name,
       phone: form.phone,
       topic: form.topic,

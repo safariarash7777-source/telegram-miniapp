@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* Self-hosted Vazirmatn (bundled by Vite from the npm package) — replaces the
+   former runtime Google Fonts <link>, which is slow/blocked on some networks. */
+@import "vazirmatn/Vazirmatn-font-face.css";
 
 /* ═══════════════════════════════════════════════════════════
    BRAND IDENTITY — آرش صفری

@@ -54,7 +54,7 @@ export default function ProfileSetup() {
         {/* Header */}
         <div className="text-center mb-8">
           <img
-            src="/manus-storage/mark-white_d3b7a24a.png"
+            src="/images/mark-white_d3b7a24a.png"
             alt="لوگو"
             className="w-14 h-14 object-contain mx-auto mb-4"
           />

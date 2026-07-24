@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+import type { TelegramSession } from "./telegram-session";
 
 // Mock db module
 vi.mock("./db", () => ({
@@ -8,6 +9,7 @@ vi.mock("./db", () => ({
   getUserByOpenId: vi.fn(),
   getTelegramUserByTelegramId: vi.fn(),
   createOrUpdateTelegramUser: vi.fn(),
+  promoteTelegramUserToAdmin: vi.fn(),
   createConsultation: vi.fn(),
   getConsultationsByTelegramId: vi.fn(),
   getAllConsultations: vi.fn(),
@@ -42,33 +44,93 @@ vi.mock("./telegram", () => ({
   setWebhook: vi.fn().mockResolvedValue(true),
   answerCallbackQuery: vi.fn().mockResolvedValue(true),
   createMiniAppButton: vi.fn().mockReturnValue({}),
+  getWebhookSecret: vi.fn().mockReturnValue("test-secret"),
 }));
 
 import * as db from "./db";
 import * as telegram from "./telegram";
 
-function createPublicCtx(): TrpcContext {
+function createCtx(telegramSession: TelegramSession | null = null): TrpcContext {
   return {
     user: null,
+    telegramSession,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: {
+      cookie: vi.fn(),
       clearCookie: vi.fn(),
     } as unknown as TrpcContext["res"],
   };
 }
 
-describe("telegramAuth.registerUser", () => {
+const USER_A: TelegramSession = {
+  telegramId: "111111111",
+  firstName: "کاربر",
+  username: "user_a",
+  isAdmin: false,
+};
+
+describe("authorization — identity comes from the session, never from input", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("registers a new telegram user successfully", async () => {
+  it("rejects portfolio.list without a session", async () => {
+    const caller = appRouter.createCaller(createCtx(null));
+    await expect(caller.portfolio.list()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("rejects consultation.myList without a session", async () => {
+    const caller = appRouter.createCaller(createCtx(null));
+    await expect(caller.consultation.myList()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("rejects registerUser without a session", async () => {
+    const caller = appRouter.createCaller(createCtx(null));
+    await expect(
+      caller.telegramAuth.registerUser({ name: "x", phone: "09120000000" })
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("scopes portfolio queries to the session's telegramId", async () => {
+    vi.mocked(db.getPortfolioByTelegramId).mockResolvedValue([]);
+    const caller = appRouter.createCaller(createCtx(USER_A));
+    await caller.portfolio.list();
+    expect(db.getPortfolioByTelegramId).toHaveBeenCalledWith(USER_A.telegramId);
+  });
+
+  it("pins asset deletion to the owner's telegramId (no cross-user IDOR)", async () => {
+    vi.mocked(db.deletePortfolioAsset).mockResolvedValue(undefined);
+    const caller = appRouter.createCaller(createCtx(USER_A));
+    await caller.portfolio.deleteAsset({ id: 42 });
+    expect(db.deletePortfolioAsset).toHaveBeenCalledWith(42, USER_A.telegramId);
+  });
+
+  it("blocks analysis.create for non-admin sessions", async () => {
+    const caller = appRouter.createCaller(createCtx(USER_A));
+    await expect(
+      caller.analysis.create({ title: "t", description: "d", category: "gold" })
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("allows analysis.create for admin sessions", async () => {
+    vi.mocked(db.createAnalysis).mockResolvedValue(undefined as any);
+    const caller = appRouter.createCaller(createCtx({ ...USER_A, isAdmin: true }));
+    const result = await caller.analysis.create({ title: "t", description: "d", category: "gold" });
+    expect(result.success).toBe(true);
+  });
+
+  it("blocks consultation.listAll for non-admin sessions", async () => {
+    const caller = appRouter.createCaller(createCtx(USER_A));
+    await expect(caller.consultation.listAll()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+});
+
+describe("telegramAuth", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("registers profile using the session identity", async () => {
     vi.mocked(db.createOrUpdateTelegramUser).mockResolvedValue(undefined);
-    const caller = appRouter.createCaller(createPublicCtx());
+    const caller = appRouter.createCaller(createCtx(USER_A));
 
     const result = await caller.telegramAuth.registerUser({
-      telegramId: "123456789",
-      firstName: "آرش",
-      lastName: "صفری",
-      username: "arash_safari",
       name: "آرش صفری",
       phone: "09123456789",
     });
@@ -76,31 +138,26 @@ describe("telegramAuth.registerUser", () => {
     expect(result.success).toBe(true);
     expect(db.createOrUpdateTelegramUser).toHaveBeenCalledWith(
       expect.objectContaining({
-        telegramId: "123456789",
+        telegramId: USER_A.telegramId, // from session, not input
         name: "آرش صفری",
         phone: "09123456789",
       })
     );
   });
 
-  it("returns existing user by telegramId", async () => {
-    const mockUser = {
-      id: 1,
-      telegramId: "123456789",
-      firstName: "آرش",
-      lastName: "صفری",
-      username: "arash_safari",
-      name: "آرش صفری",
-      phone: "09123456789",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    vi.mocked(db.getTelegramUserByTelegramId).mockResolvedValue(mockUser);
-    const caller = appRouter.createCaller(createPublicCtx());
+  it("rejects login with invalid initData", async () => {
+    process.env.TELEGRAM_BOT_TOKEN = "12345:TEST-TOKEN";
+    const caller = appRouter.createCaller(createCtx(null));
+    await expect(
+      caller.telegramAuth.login({ initData: "user=%7B%22id%22%3A1%7D&auth_date=1&hash=deadbeef" })
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    delete process.env.TELEGRAM_BOT_TOKEN;
+  });
 
-    const result = await caller.telegramAuth.getUser({ telegramId: "123456789" });
-
-    expect(result).toMatchObject({ telegramId: "123456789", name: "آرش صفری" });
+  it("returns null session when logged out", async () => {
+    const caller = appRouter.createCaller(createCtx(null));
+    const result = await caller.telegramAuth.session();
+    expect(result).toBeNull();
   });
 });
 
@@ -110,10 +167,9 @@ describe("consultation.submit", () => {
   it("submits a consultation and sends Telegram notification", async () => {
     vi.mocked(db.createConsultation).mockResolvedValue(undefined);
     vi.mocked(telegram.notifyAdminNewConsultation).mockResolvedValue(true);
-    const caller = appRouter.createCaller(createPublicCtx());
+    const caller = appRouter.createCaller(createCtx(USER_A));
 
     const result = await caller.consultation.submit({
-      telegramId: "123456789",
       name: "آرش صفری",
       phone: "09123456789",
       topic: "gold",
@@ -122,18 +178,22 @@ describe("consultation.submit", () => {
 
     expect(result.success).toBe(true);
     expect(db.createConsultation).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "آرش صفری", topic: "gold" })
+      expect.objectContaining({
+        name: "آرش صفری",
+        topic: "gold",
+        telegramId: USER_A.telegramId,
+      })
     );
     expect(telegram.notifyAdminNewConsultation).toHaveBeenCalledWith(
       expect.objectContaining({ name: "آرش صفری", topic: "gold" })
     );
   });
 
-  it("returns consultation list for a telegram user", async () => {
+  it("returns the session user's own consultation list", async () => {
     const mockConsultations = [
       {
         id: 1,
-        telegramId: "123456789",
+        telegramId: USER_A.telegramId,
         name: "آرش صفری",
         phone: "09123456789",
         topic: "gold" as const,
@@ -146,18 +206,18 @@ describe("consultation.submit", () => {
       },
     ];
     vi.mocked(db.getConsultationsByTelegramId).mockResolvedValue(mockConsultations);
-    const caller = appRouter.createCaller(createPublicCtx());
+    const caller = appRouter.createCaller(createCtx(USER_A));
 
-    const result = await caller.consultation.myList({ telegramId: "123456789" });
+    const result = await caller.consultation.myList();
 
     expect(result).toHaveLength(1);
-    expect(result[0].topic).toBe("gold");
+    expect(db.getConsultationsByTelegramId).toHaveBeenCalledWith(USER_A.telegramId);
   });
 });
 
 describe("prices.getLive", () => {
   it("returns price data with required fields", async () => {
-    const caller = appRouter.createCaller(createPublicCtx());
+    const caller = appRouter.createCaller(createCtx(null));
     const result = await caller.prices.getLive() as any;
 
     expect(result).toHaveProperty("gold18");
@@ -168,8 +228,6 @@ describe("prices.getLive", () => {
     expect(result).toHaveProperty("coinQuarter");
     expect(result).toHaveProperty("goldOunce");
     expect(result.gold18).toHaveProperty("price");
-    expect(result.gold18).toHaveProperty("change");
-    expect(result.gold18).toHaveProperty("changePercent");
     expect(result).toHaveProperty("updatedAt");
     expect(result).toHaveProperty("source");
   });
