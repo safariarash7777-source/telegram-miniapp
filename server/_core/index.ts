@@ -56,6 +56,16 @@ async function startServer() {
     legacyHeaders: false,
   }));
 
+  // F-03 fix: tighter limit on the login endpoint to prevent brute-force
+  // or replay-flooding of initData verification (10 attempts per minute per IP).
+  app.use("/api/trpc/telegramAuth.login", rateLimit({
+    windowMs: 60_000,
+    limit: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many login attempts, please try again later" },
+  }));
+
   // File uploads will use dedicated multipart endpoints later; JSON bodies
   // never need to be anywhere near 50mb.
   app.use(express.json({ limit: "2mb" }));

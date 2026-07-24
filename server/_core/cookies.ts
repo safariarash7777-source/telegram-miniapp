@@ -42,6 +42,12 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
+    // F-01: sameSite "none" is intentional and required.
+    // Telegram WebApp runs inside a cross-origin iframe (t.me → your domain),
+    // so the browser will not send SameSite=Lax/Strict cookies on the API
+    // requests originating from that iframe. "none" + secure:true is the only
+    // combination that works for cross-origin embedded contexts.
+    // Reference: https://core.telegram.org/bots/webapps#initializing-mini-apps
     sameSite: "none",
     secure: isSecureRequest(req),
   };

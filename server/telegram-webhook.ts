@@ -50,11 +50,15 @@ telegramWebhookRouter.post("/webhook", async (req: Request, res: Response) => {
   // Reject anything that doesn't carry it — otherwise anyone who knows the
   // URL can inject fake bot updates.
   const expectedSecret = getWebhookSecret();
-  if (expectedSecret) {
-    const provided = req.header("x-telegram-bot-api-secret-token") ?? "";
-    if (!safeEqual(provided, expectedSecret)) {
-      return res.status(403).json({ ok: false, error: "Forbidden" });
-    }
+  // F-02 fix: if TELEGRAM_BOT_TOKEN is not set we cannot derive a webhook secret,
+  // so we refuse all updates rather than accepting them blindly (bypass prevention).
+  if (!expectedSecret) {
+    console.error("[Webhook] TELEGRAM_BOT_TOKEN not configured; rejecting update to prevent unauthenticated access");
+    return res.status(503).json({ ok: false, error: "Bot not configured" });
+  }
+  const provided = req.header("x-telegram-bot-api-secret-token") ?? "";
+  if (!safeEqual(provided, expectedSecret)) {
+    return res.status(403).json({ ok: false, error: "Forbidden" });
   }
 
   try {
