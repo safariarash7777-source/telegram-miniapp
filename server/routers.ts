@@ -19,6 +19,7 @@ import {
 } from "./telegram-session";
 import { getLivePrices } from "./price-service";
 import { getCachedArashPosts } from "./channel-scraper";
+import { copyLeadToPlatform } from "./leadWebhook";
 
 async function buildSessionPayload(session: TelegramSession) {
   let profile = null;
@@ -189,23 +190,33 @@ export const appRouter = router({
             telegramUsername: s.username,
           });
 
-          // Webhook: copy lead to Supabase platform (fire-and-forget)
-          const PLATFORM_URL = process.env.PLATFORM_WEBHOOK_URL || "https://portfolio-platform-fawn.vercel.app";
-          fetch(`${PLATFORM_URL}/api/leads/webhook`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-Webhook-Secret": process.env.PLATFORM_WEBHOOK_SECRET || "" },
-            body: JSON.stringify({
-              source: "miniapp",
-              name: input.name,
-              phone: input.phone,
-              topic: input.topic,
-              message: input.message || null,
-              preferred_date: input.preferredDate || null,
-              preferred_time: input.preferredTime || null,
-              telegram_username: s.username || null,
-              telegram_id: s.telegramId || null,
-            }),
-          }).catch(err => console.error("[Lead webhook] Failed:", err));
+          // Webhook: copy lead to the Supabase platform.
+          //
+          // The local MySQL row and the Telegram notification are already
+          // committed above, so a webhook failure never loses the lead — it
+          // only means the platform copy is missing. That is why this block
+          // is awaited but never rethrows.
+          //
+          // It used to be `fetch(...).catch(console.error)` with no await, no
+          // timeout and no status check (B-019). Three separate problems:
+          //   1. an unawaited promise can be dropped when the serverless
+          //      invocation ends, so the request might never be sent at all;
+          //   2. without a timeout a hung platform could keep the handler
+          //      alive until the runtime killed it;
+          //   3. `.catch()` only fires on network errors — a 401 or 500 is a
+          //      *resolved* promise, so every rejected lead looked like a
+          //      success. B-020 guarantees 401s, which were all invisible.
+          await copyLeadToPlatform({
+            source: "miniapp",
+            name: input.name,
+            phone: input.phone,
+            topic: input.topic,
+            message: input.message || null,
+            preferred_date: input.preferredDate || null,
+            preferred_time: input.preferredTime || null,
+            telegram_username: s.username || null,
+            telegram_id: s.telegramId || null,
+          });
 
           return { success: true, message: "درخواست مشاوره شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت." };
         } catch (error) {
