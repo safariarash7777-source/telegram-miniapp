@@ -1,0 +1,64 @@
+name: CI
+
+# This repository had **no** workflow at all, so every PR merged with zero
+# automated verification — including the lead-webhook change, whose whole point
+# is that silent failures are dangerous. Shipping that on "it typechecked on my
+# machine" would have repeated the mistake it fixes.
+#
+# Deliberately minimal and secret-free: typecheck plus unit tests. It never
+# connects to MySQL, Telegram or the Portfolio platform, and needs no secrets,
+# so it is safe to run on any PR.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Typecheck · Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # `npm ci` is not used: the committed lockfile does not resolve cleanly
+      # against the current peer-dependency graph (recharts/react). Fixing that
+      # is a separate dependency-hygiene task; forcing it here would turn an
+      # unrelated failure into a permanent red gate on every PR.
+      - name: Install
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+
+      - name: Typecheck
+        run: npm run check
+
+      - name: Tests
+        run: npm test
+
+  # Single aggregate check, so branch protection only ever needs one context.
+  ci:
+    name: CI Gate
+    runs-on: ubuntu-latest
+    needs: [quality]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          echo "quality: ${{ needs.quality.result }}"
+          if [ "${{ needs.quality.result }}" != "success" ]; then
+            echo "::error::CI failed."
+            exit 1
+          fi
+          echo "All gates green."
