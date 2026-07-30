@@ -29,15 +29,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # No `cache: npm` on purpose — that option needs a lockfile to hash, and
+      # this repository has **none committed**. Enabling it fails the job before
+      # a single test runs, which is exactly what happened on the first attempt.
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
 
-      # `npm ci` is not used: the committed lockfile does not resolve cleanly
-      # against the current peer-dependency graph (recharts/react). Fixing that
-      # is a separate dependency-hygiene task; forcing it here would turn an
-      # unrelated failure into a permanent red gate on every PR.
+      # Two reasons `npm ci` is not used here, both worth stating plainly:
+      #   1. there is no committed lockfile, so `npm ci` cannot run at all;
+      #   2. the dependency graph needs --legacy-peer-deps (recharts/react).
+      #
+      # That means installs in this repository are **not reproducible** — a
+      # genuine hygiene gap, recorded rather than silently papered over.
+      # Committing a lockfile is a separate change with its own review; doing it
+      # inside a lead-webhook PR would bury it.
       - name: Install
         run: npm install --no-audit --no-fund --legacy-peer-deps
 
