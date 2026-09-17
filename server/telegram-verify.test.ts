@@ -61,3 +61,64 @@ describe("verifyTelegramInitData", () => {
     expect(isInitDataExpired(stale)).toBe(true); // default window is 1h
   });
 });
+
+describe("parseTelegramUser — percent signs in names", () => {
+  // Reproduced against the real code: URLSearchParams.get already decodes, so
+  // the extra decodeURIComponent threw URIError on a trailing "%" (login
+  // returned null) and silently rewrote "100%41" to "100A".
+  it("keeps a trailing percent sign instead of failing the login", () => {
+    const initData = buildSignedInitData({ id: 5, first_name: "100%" });
+    const parsed = parseTelegramUser(initData);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.first_name).toBe("100%");
+  });
+
+  it("does not re-decode a percent escape inside a name", () => {
+    const initData = buildSignedInitData({ id: 6, first_name: "100%41" });
+    expect(parseTelegramUser(initData)!.first_name).toBe("100%41");
+  });
+
+  it("keeps other characters that survive one decode round", () => {
+    const initData = buildSignedInitData({ id: 7, first_name: "a+b &c", username: "u_%20" });
+    const parsed = parseTelegramUser(initData)!;
+    expect(parsed.first_name).toBe("a+b &c");
+    expect(parsed.username).toBe("u_%20");
+  });
+
+  it("still reads ordinary Persian names", () => {
+    const initData = buildSignedInitData({ id: 8, first_name: "آرش" });
+    expect(parseTelegramUser(initData)!.first_name).toBe("آرش");
+  });
+});
+
+describe("isInitDataExpired — invalid and future timestamps", () => {
+  it("treats a non-numeric auth_date as expired", () => {
+    // parseInt("abc") is NaN and NaN > limit is false, so this used to pass.
+    expect(isInitDataExpired("user=%7B%7D&auth_date=abc&hash=x")).toBe(true);
+  });
+
+  it("treats an empty auth_date as expired", () => {
+    expect(isInitDataExpired("user=%7B%7D&auth_date=&hash=x")).toBe(true);
+  });
+
+  it("treats a far-future auth_date as expired", () => {
+    const future = Math.floor(Date.now() / 1000) + 86400 * 365;
+    expect(isInitDataExpired(`user=%7B%7D&auth_date=${future}&hash=x`)).toBe(true);
+  });
+
+  it("treats a zero or negative auth_date as expired", () => {
+    expect(isInitDataExpired("user=%7B%7D&auth_date=0&hash=x")).toBe(true);
+    expect(isInitDataExpired("user=%7B%7D&auth_date=-100&hash=x")).toBe(true);
+  });
+
+  it("tolerates small clock skew", () => {
+    const slightlyAhead = Math.floor(Date.now() / 1000) + 60;
+    expect(isInitDataExpired(`user=%7B%7D&auth_date=${slightlyAhead}&hash=x`)).toBe(false);
+  });
+
+  it("still accepts a fresh timestamp and rejects an old one", () => {
+    const now = Math.floor(Date.now() / 1000);
+    expect(isInitDataExpired(`user=%7B%7D&auth_date=${now}&hash=x`)).toBe(false);
+    expect(isInitDataExpired(`user=%7B%7D&auth_date=${now - 7200}&hash=x`)).toBe(true);
+  });
+});
