@@ -49,11 +49,18 @@ export function parseTelegramUser(initData: string): {
     const params = new URLSearchParams(initData);
     const userStr = params.get("user");
     if (!userStr) return null;
-    return JSON.parse(decodeURIComponent(userStr));
+    // `URLSearchParams.get` already percent-decodes the value. Decoding it a
+    // second time corrupts any name that legitimately contains a percent sign:
+    // "100%41" silently became "100A", and a trailing "100%" threw URIError so
+    // the whole login returned null. Parse the value as-is.
+    return JSON.parse(userStr);
   } catch {
     return null;
   }
 }
+
+/** Tolerated clock skew between Telegram's clock and ours, in seconds. */
+const MAX_CLOCK_SKEW_SECONDS = 300;
 
 /**
  * Check if initData is expired. Telegram issues fresh initData every time the
@@ -65,7 +72,20 @@ export function isInitDataExpired(initData: string, maxAgeSeconds = 3600): boole
     const params = new URLSearchParams(initData);
     const authDate = params.get("auth_date");
     if (!authDate) return true;
-    const age = Math.floor(Date.now() / 1000) - parseInt(authDate);
+
+    // `parseInt` returns NaN for junk, and every comparison against NaN is
+    // false — so "abc" used to read as "not expired" and was accepted. A
+    // timestamp in the future produced a negative age, which is also never
+    // greater than the limit, so a forged future date was accepted too.
+    // Both are now rejected explicitly; only a sane, past timestamp passes.
+    const seconds = Number(authDate);
+    if (!Number.isFinite(seconds) || !Number.isInteger(seconds) || seconds <= 0) return true;
+
+    const age = Math.floor(Date.now() / 1000) - seconds;
+    // A small negative age is ordinary clock skew between Telegram and us;
+    // anything further ahead is not a timestamp we should trust.
+    if (age < -MAX_CLOCK_SKEW_SECONDS) return true;
+
     return age > maxAgeSeconds;
   } catch {
     return true;
