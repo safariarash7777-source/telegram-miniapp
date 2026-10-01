@@ -1,0 +1,36 @@
+vite v7.1.9 building for production...
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /index.html. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /index.html. Is the variable mistyped?
+<script src="%VITE_ANALYTICS_ENDPOINT%/umami"> in "/index.html" can't be bundled without type="module" attribute
+transforming...
+
+/fonts/Pelak-Bold_c6d514e8.woff2 referenced in /fonts/Pelak-Bold_c6d514e8.woff2 didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+/fonts/Pelak-ExtraBold_d276833a.woff2 referenced in /fonts/Pelak-ExtraBold_d276833a.woff2 didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+/fonts/Pelak-Black_09ef6ce9.woff2 referenced in /fonts/Pelak-Black_09ef6ce9.woff2 didn't resolve at build time, it will remain unchanged to be resolved at runtime
+✓ 2333 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/assets/Vazirmatn-Black-DA1YqYMq.woff2        50.57 kB
+../dist/public/assets/Vazirmatn-Regular-CtGL0YI-.woff2      50.68 kB
+../dist/public/assets/Vazirmatn-Thin-DdUiS1cj.woff2         50.80 kB
+../dist/public/assets/Vazirmatn-Bold-_OhAJEdh.woff2         51.02 kB
+../dist/public/assets/Vazirmatn-SemiBold-26ZP1ILp.woff2     51.03 kB
+../dist/public/assets/Vazirmatn-ExtraBold-DCjt2qDm.woff2    51.12 kB
+../dist/public/assets/Vazirmatn-Medium-D86t5Axy.woff2       51.13 kB
+../dist/public/assets/Vazirmatn-Light-Byrs-DlH.woff2        51.18 kB
+../dist/public/assets/Vazirmatn-ExtraLight-DNfybfsL.woff2   51.27 kB
+../dist/public/index.html                                  369.05 kB │ gzip: 106.14 kB
+../dist/public/assets/index-CA4qWdr7.css                   127.88 kB │ gzip:  20.78 kB
+../dist/public/assets/index-EpQRZqHs.js                    900.59 kB │ gzip: 255.60 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.43s
+
+  dist\index.js  87.9kb
+
+Done in 10ms

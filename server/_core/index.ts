@@ -11,6 +11,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { telegramWebhookRouter } from "../telegram-webhook";
+import {platformConnectionRouter} from '../platform-connection-router';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -74,6 +75,7 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Telegram webhook
   app.use("/api/telegram", telegramWebhookRouter);
+  app.use('/api/platform-connection',platformConnectionRouter);
 
   // tRPC API
   app.use(

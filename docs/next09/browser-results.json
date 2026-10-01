@@ -1,0 +1,12 @@
+{
+  "fixtureOnly": true,
+  "checks": [
+    "verified-session fixture gate",
+    "no contact profile required for connection",
+    "proof form",
+    "returned confirmation",
+    "failure visible",
+    "mobile no overflow"
+  ],
+  "pageErrors": []
+}

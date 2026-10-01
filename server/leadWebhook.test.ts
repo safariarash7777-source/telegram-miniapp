@@ -218,7 +218,8 @@ describe("failure logs never leak personal data or the secret", () => {
     expect(entry.status).toBe(401);
     // The telegram id is the one handle an operator can correlate on without
     // any personal data being written.
-    expect(entry.telegram_id).toBe(PAYLOAD.telegram_id);
+    expect(entry.telegram_id).toBeUndefined();
+    expect(entry.correlation_id).toBeNull();
     expect(typeof entry.at).toBe("string");
   });
 });

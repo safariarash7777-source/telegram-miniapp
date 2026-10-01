@@ -109,7 +109,7 @@ export async function promoteTelegramUserToAdmin(telegramId: string) {
 // ── Consultations ───────────────────────────────────────────────────────────
 export async function createConsultation(data: InsertConsultation) {
   const db = await getDb();
-  if (!db) { console.warn("[Database] Cannot create consultation: database not available"); return undefined; }
+  if (!db) throw new Error('Consultation storage unavailable');
   try {
     const result = await db.insert(consultations).values(data);
     return result;
