@@ -21,6 +21,7 @@ const TIME_SLOTS = [
 export default function Consultation() {
   const { registeredUser, telegramUser, twa } = useTelegram();
   const [submitted, setSubmitted] = useState(false);
+  const [copyStatus,setCopyStatus]=useState('pending');
 
   const [form, setForm] = useState({
     name: registeredUser?.name ?? (telegramUser ? `${telegramUser.first_name}${telegramUser.last_name ? " " + telegramUser.last_name : ""}` : ""),
@@ -32,12 +33,13 @@ export default function Consultation() {
   });
 
   const submitMutation = trpc.consultation.submit.useMutation({
-    onSuccess: () => {
+    onSuccess: data => {
+      setCopyStatus(data.platformCopy);
       setSubmitted(true);
       twa.hideMainButton();
       twa.hapticFeedback("notification");
-      // Auto-redirect to About page after 4 seconds
-      setTimeout(() => navigate("/about"), 4000);
+      // Keep a pending copy visible so the saved request can be followed up.
+      if(data.platformCopy==='accepted')setTimeout(() => navigate("/about"), 4000);
     },
   });
 
@@ -75,7 +77,7 @@ export default function Consultation() {
           درخواست ثبت شد
         </h2>
         <p className="text-sm mb-4 leading-relaxed" style={{ color: "var(--text-3)" }}>
-          درخواست مشاوره شما با موفقیت ثبت شد. آرش صفری به زودی با شما تماس خواهد گرفت.
+          {copyStatus==='accepted'?'درخواست شما ثبت و انتقال آن به سایت تأیید شد.':'درخواست در مینی‌اپ محفوظ است؛ انتقال به سایت هنوز تأیید نشده. از حساب مینی‌اپ می‌توانید انتقال همین درخواست را پیگیری کنید.'}
         </p>
         <div className="card-elevated p-4 w-full text-right mb-4 space-y-2">
           <div className="flex justify-between text-sm">
@@ -109,6 +111,7 @@ export default function Consultation() {
         </div>
 
         <div className="flex gap-3 w-full">
+          {copyStatus!=='accepted'&&<button onClick={()=>navigate('/profile')} className="btn-secondary min-h-11 px-4">پیگیری همان درخواست</button>}
           <button
             onClick={() => navigate("/about")}
             className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2"

@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { TelegramProvider, useTelegram } from "./contexts/TelegramContext";
@@ -14,10 +14,12 @@ import Consultation from "./pages/Consultation";
 import Profile from "@/pages/Profile";
 import ProfileSetup from "@/pages/ProfileSetup";
 import About from "@/pages/About";
+import PlatformConnection from '@/pages/PlatformConnection';
 import { Loader2 } from "lucide-react";
 
 function AppContent() {
   const { isVerified, isLoading, needsProfile } = useTelegram();
+  const [location]=useLocation();
 
   // نمایش loading فقط برای مدت کوتاه
   if (isLoading) {
@@ -45,6 +47,7 @@ function AppContent() {
   }
 
   // کاربر جدید است — یک بار نام و شماره می‌گیریم (soft prompt)
+  if (location === '/platform-connection') return <PlatformConnection />;
   if (needsProfile) {
     return <ProfileSetup />;
   }

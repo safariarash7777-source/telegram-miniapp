@@ -20,6 +20,7 @@ import {
 import { getLivePrices } from "./price-service";
 import { getCachedArashPosts } from "./channel-scraper";
 import { copyLeadToPlatform } from "./leadWebhook";
+import {leadCorrelationConfig,leadReference} from './lead-correlation';
 
 async function buildSessionPayload(session: TelegramSession) {
   let profile = null;
@@ -169,7 +170,8 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         const s = ctx.telegramSession;
         try {
-          await createConsultation({
+          const correlation=process.env.NEXT09_ENABLED==='true'?leadCorrelationConfig():null;
+          const stored = await createConsultation({
             telegramId: s.telegramId,
             name: input.name,
             phone: input.phone,
@@ -178,6 +180,8 @@ export const appRouter = router({
             preferredDate: input.preferredDate,
             preferredTime: input.preferredTime,
           });
+          // A mis-set cutover must not turn an already durable request into a failed submit.
+          if(correlation&&(!Number.isSafeInteger(stored[0].insertId)||stored[0].insertId<correlation.first))return {success:true,platformCopy:'pending',message:'درخواست محلی ثبت شد؛ تنظیم انتقال نیازمند بررسی مسئول سایت است.'};
 
           // Send Telegram notification to Arash Safari
           await notifyAdminNewConsultation({
@@ -206,7 +210,8 @@ export const appRouter = router({
           //   3. `.catch()` only fires on network errors — a 401 or 500 is a
           //      *resolved* promise, so every rejected lead looked like a
           //      success. B-020 guarantees 401s, which were all invisible.
-          await copyLeadToPlatform({
+          const copyResult = await copyLeadToPlatform({
+            ...(process.env.NEXT09_ENABLED==='true' ? {external_ref:leadReference(stored[0].insertId)}:{}),
             source: "miniapp",
             name: input.name,
             phone: input.phone,
@@ -214,17 +219,25 @@ export const appRouter = router({
             message: input.message || null,
             preferred_date: input.preferredDate || null,
             preferred_time: input.preferredTime || null,
-            telegram_username: s.username || null,
+            telegram_username: process.env.NEXT09_ENABLED==='true'?null:s.username || null,
             telegram_id: s.telegramId || null,
           });
 
-          return { success: true, message: "درخواست مشاوره شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت." };
+          return { success: true, platformCopy:copyResult.ok?'accepted':'pending', message:copyResult.ok?'درخواست مشاوره ثبت شد.':'درخواست در مینی‌اپ ثبت شد؛ انتقال به سایت هنوز تأیید نشده است.' };
         } catch (error) {
-          console.error("Failed to create consultation:", error);
+          console.error("consultation_store_failed");
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "خطا در ثبت درخواست مشاوره" });
         }
       }),
 
+    retryPlatformCopy:telegramProcedure.input(z.object({id:z.number().int().positive()})).mutation(async({input,ctx})=>{
+      if(process.env.NEXT09_ENABLED!=='true')throw new TRPCError({code:'PRECONDITION_FAILED',message:'مسیر پیگیری انتقال آماده نیست.'});
+      let reference:string;try{reference=leadReference(input.id);}catch{throw new TRPCError({code:'PRECONDITION_FAILED',message:'این درخواست قدیمی یا تنظیم انتقال نیازمند تطبیق مسئول سایت است.'});}
+      const local=(await getConsultationsByTelegramId(ctx.telegramSession.telegramId)).find(c=>c.id===input.id);
+      if(!local)throw new TRPCError({code:'NOT_FOUND',message:'درخواست در دسترس نیست.'});
+      const r=await copyLeadToPlatform({source:'miniapp',external_ref:reference,name:local.name,phone:local.phone,topic:local.topic,message:local.message,preferred_date:local.preferredDate,preferred_time:local.preferredTime,telegram_username:null,telegram_id:ctx.telegramSession.telegramId});
+      return {platformCopy:r.ok?'accepted':'pending'};
+    }),
     myList: telegramProcedure.query(async ({ ctx }) => {
       try {
         return await getConsultationsByTelegramId(ctx.telegramSession.telegramId);

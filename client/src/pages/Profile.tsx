@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect,useState } from "react";
+import {Link} from 'wouter';
 import { trpc } from "@/lib/trpc";
 import { useTelegram } from "@/contexts/TelegramContext";
 import { User, Phone, MessageSquare, Clock, CheckCircle, XCircle, Star } from "lucide-react";
@@ -19,6 +20,8 @@ const TOPIC_LABELS: Record<string, string> = {
 };
 
 export default function Profile() {
+  const [copyMessage,setCopyMessage]=useState('');
+  const retryCopy=trpc.consultation.retryPlatformCopy.useMutation({onSuccess:r=>setCopyMessage(r.platformCopy==='accepted'?'انتقال همین درخواست به سایت تأیید شد.':'درخواست محلی محفوظ است؛ انتقال هنوز تأیید نشده است.'),onError:e=>setCopyMessage(e.message)});
   const { registeredUser, telegramUser, twa } = useTelegram();
 
   useEffect(() => {
@@ -60,6 +63,8 @@ export default function Profile() {
       </header>
 
       <div className="px-4 pt-4 space-y-4">
+        {copyMessage&&<p role="status">{copyMessage}</p>}
+        <Link href="/platform-connection" className="block rounded-xl border px-4 py-3 min-h-11">اتصال به حساب سایت</Link>
         {/* ─── Avatar card ──────────────────────────────────── */}
         <div
           className="rounded-2xl p-5 relative overflow-hidden"
@@ -179,6 +184,7 @@ export default function Profile() {
                 const status = STATUS_CONFIG[c.status] ?? STATUS_CONFIG.pending;
                 return (
                   <div key={c.id} className="card-elevated p-4">
+                    <button type="button" disabled={retryCopy.isPending} onClick={()=>retryCopy.mutate({id:c.id})} className="min-h-11 rounded-lg border px-3 py-2">پیگیری انتقال همین درخواست به سایت</button>
                     <div className="flex items-start justify-between mb-2">
                       <p className="text-sm font-bold" style={{ color: "var(--text)" }}>
                         {TOPIC_LABELS[c.topic] ?? c.topic}

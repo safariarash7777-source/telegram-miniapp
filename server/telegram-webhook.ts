@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "crypto";
 import express, { Request, Response } from "express";
 import { sendMessage, answerCallbackQuery, setWebhook, getWebhookSecret } from "./telegram";
+import {provePlatformConnection,privateConnectionUpdate} from './platform-connection';
 
 /** Constant-time string comparison (length-safe). */
 function safeEqual(a: string, b: string): boolean {
@@ -67,6 +68,14 @@ telegramWebhookRouter.post("/webhook", async (req: Request, res: Response) => {
     const token = process.env.TELEGRAM_BOT_TOKEN;
 
     if (update.message?.text) {
+      if(process.env.NEXT09_ENABLED==='true' && update.message.text.startsWith('/link ')) {
+        if(!privateConnectionUpdate(update.message))return res.json({ok:true});
+        try {
+          const proof=await provePlatformConnection(update.message.text.slice(6).trim(),String(update.message.from.id));
+          await sendMessage(update.message.chat.id,'برای پایان اتصال، این کد را فقط در همان صفحه سایت که خودتان باز کرده‌اید وارد کنید:\n'+proof.confirmation+'\nهنوز اتصال نهایی یا رضایت اعلان ثبت نشده است.');
+        }catch {await sendMessage(update.message.chat.id,'اتصال انجام نشد؛ کد تازه از سایت بگیرید.');}
+        return res.json({ok:true});
+      }
       const chatId = update.message.chat.id;
       const text = update.message.text;
       const firstName = update.message.from.first_name;
