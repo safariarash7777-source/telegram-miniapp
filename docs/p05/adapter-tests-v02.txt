@@ -1,0 +1,11 @@
+
+ RUN  v2.1.9 C:/Users/Asus/Documents/ChatGPT/توسعه سایت/telegram-p05-portfolio-20261002
+
+ ✓ server/p05/canonical-read-transport.test.ts (17 tests) 47ms
+ ✓ server/p05/canonical-adapter.test.ts (40 tests) 64ms
+ ✓ server/p05/portfolio-preview.test.ts (100 tests) 84ms
+
+ Test Files  3 passed (3)
+      Tests  157 passed (157)
+   Start at  20:24:42
+   Duration  1.03s (transform 262ms, setup 0ms, collect 487ms, tests 195ms, environment 1ms, prepare 783ms)

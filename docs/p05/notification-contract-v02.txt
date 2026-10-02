@@ -1,0 +1,7 @@
+PASS 1: mini5 bridge matches site193 signature; altered body refused.
+PASS 2: exact version/cohort return path retained; malformed and foreign targets refused. Scope authorization remains canonical.
+PASS 3: explicit independent notification categories and owner-session unlink use existing RPCs; forged owner refused.
+PASS 4: Auth reject/outage separated, no private RPC on failed Auth.
+PASS 5: changed/unlinked/revoked authorization mock cancels before transport. No SQL/native binding accepted.
+PASS 6: injected fake transport has generic message and scoped link; API-accepted is not read/transaction. No real fetch.
+STATIC: existing confirm/unlink resets categories to false; link/preference epochs rechecked by valid_job. SQL not executed in this witness.

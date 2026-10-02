@@ -1,0 +1,5 @@
+
+  tmp\p05-v02\canonical-adapter.js         13.3kb
+  tmp\p05-v02\canonical-read-transport.js   3.1kb
+
+Done in 20ms

@@ -1,0 +1,27 @@
+server/p05/canonical-adapter.ts(57,18): error TS2339: Property 'ownerId' does not exist on type 'CanonicalRead'.
+  Property 'ownerId' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(58,39): error TS2339: Property 'positions' does not exist on type 'CanonicalRead'.
+  Property 'positions' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(58,89): error TS2339: Property 'debts' does not exist on type 'CanonicalRead'.
+  Property 'debts' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(59,33): error TS2339: Property 'supportedAssetClasses' does not exist on type 'CanonicalRead'.
+  Property 'supportedAssetClasses' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(59,67): error TS2339: Property 'supportedAssetClasses' does not exist on type 'CanonicalRead'.
+  Property 'supportedAssetClasses' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(59,94): error TS7006: Parameter 'c' implicitly has an 'any' type.
+server/p05/canonical-adapter.ts(70,23): error TS2339: Property 'version' does not exist on type 'CanonicalRead'.
+  Property 'version' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(70,197): error TS2339: Property 'version' does not exist on type 'CanonicalRead'.
+  Property 'version' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(70,257): error TS2339: Property 'version' does not exist on type 'CanonicalRead'.
+  Property 'version' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(70,312): error TS2339: Property 'version' does not exist on type 'CanonicalRead'.
+  Property 'version' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(81,210): error TS2339: Property 'version' does not exist on type 'CanonicalRead'.
+  Property 'version' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(81,270): error TS2339: Property 'supportedAssetClasses' does not exist on type 'CanonicalRead'.
+  Property 'supportedAssetClasses' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(83,241): error TS2339: Property 'version' does not exist on type 'CanonicalRead'.
+  Property 'version' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
+server/p05/canonical-adapter.ts(83,358): error TS2339: Property 'supportedAssetClasses' does not exist on type 'CanonicalRead'.
+  Property 'supportedAssetClasses' does not exist on type '{ contractVersion: "p04-canonical-read.v0.1"; state: "error"; }'.
