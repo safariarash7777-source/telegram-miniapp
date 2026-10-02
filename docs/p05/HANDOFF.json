@@ -1,0 +1,46 @@
+{
+  "dateTehran": "2026-10-02",
+  "plan": "arash-product-plan-v0.1",
+  "package": "P05",
+  "pr": "https://github.com/safariarash7777-source/telegram-miniapp/pull/6",
+  "branch": "codex/p05-portfolio-preview-20261002",
+  "codeHead": "fa61a5cd51719ee2a12ba1b72cf0d9112198abe8",
+  "base": "26c885cdf6aac1401e7feb9d7312df525ddd25e2",
+  "preservedSite193": "712ff1c2d9ff95419c0cd1fab91a91901b509835",
+  "readOnlyInputs": {
+    "site191": "a83f71d922a93ec2bfb398a306d7b282ce1db81f",
+    "site195": "31c44ab635b672b589b7833bcbc78b41d36f1e75",
+    "p04Contract": "ab2a0fdb52cd1f2d791687f346bd4126acef6922"
+  },
+  "ownership": [
+    "server/p05/*",
+    "docs/p05/*"
+  ],
+  "evidence": {
+    "targetedMockTests": 100,
+    "localTypecheck": "pass",
+    "localViteEsbuild": "pass with existing font/chunk warnings",
+    "actualP04PureNormalizer": "pass synthetic only",
+    "secretScan": "pass",
+    "workflowRuns": [],
+    "CI": "not triggered: stacked PR base not main; no green claim"
+  },
+  "gates": {
+    "P00ReleaseManifest": "open",
+    "P01NativeIdentity": "open",
+    "P04ReadAccountConfirmationReceipt": "open",
+    "P07PublicationAcceptance": "separate open",
+    "durableLegacyFreeze": "not implemented",
+    "migrationTransport": "not implemented",
+    "nativeBotRuntime": "not accepted"
+  },
+  "commitBlocked": true,
+  "sourceCounts": "unknown; no live MySQL read",
+  "published": false,
+  "merged": false,
+  "schemaApplied": false,
+  "realTelegramCalls": false,
+  "customerMessages": false,
+  "policyBlockedActionRetried": false,
+  "rollbackExecuted": false
+}
