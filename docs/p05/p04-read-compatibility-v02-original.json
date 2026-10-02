@@ -1,8 +1,6 @@
 {
   "syntheticOnly": true,
-  "p04Commit": "f58f6f0baea9a24987a7b7a7c4099b5a9d205804",
-  "ownerHashBasis": "authoritative Git blob LF; imported worktree matches after CRLF normalization",
-  "ownerSourceHash": "a3a2bf89963c42e1f2db1c4a53e8279ae6ffe908fe176177d7bcbd093cf5f044",
+  "ownerSourceHash": "87232e74f891090059c7a7e7dc405af0748720c5b5595f1786149c7766659caa",
   "requests": 6,
   "nativeAuth": false,
   "databaseConnected": false,
@@ -12,7 +10,6 @@
     "accepted token/hash createdVersion",
     "missing receipt unknown",
     "content conflict preserved",
-    "invalid original positions returns400",
     "adapter commit blocked and canonical retained"
   ],
   "result": {

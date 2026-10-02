@@ -1,5 +1,7 @@
 # P05 adapter v0.2 — 2026-10-02 Tehran
 
+Latest input pin: [P04 final code checkpoint refresh](P04-FINAL-PIN.md), PR205@f58f6f0, committed blob hashes and six fresh mock compatibility checks. Prior worktree witness below is retained as historical evidence.
+
 Continuation of miniapp Draft PR6, isolated checkout/branch and same file ownership. Source base mini5@26c885c; previous P05 checkpoint a8ced161. Site193@712ff1c and existing Telegram bridge/proof/notification code remain unchanged. P00 owns composition/schema manifest; this continuation never substitutes an independently accepted release baseline.
 
 P00-BASELINE and P00-RELEASE-MANIFEST were read fresh: canonical development baseline195@31c44ab,18 migrations reported installed in native sandbox ONLY,189/193 explicitly excluded. Mini6 is not combined with195. Those environment/CI/UI observations are P00's evidence and are not inherited as P05 acceptance. Existing mini source branch is preserved, and P04 consumes195; no extra checkout or shared file changes are required for this cross-repository read connector.

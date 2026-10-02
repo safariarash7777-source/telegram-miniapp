@@ -1,1 +1,1 @@
-PASS: 5 P04/P05 read-handler compatibility checks with mock DB/HTTP, owner metadata and separate MD5/context hashes. No native/SQL/live/network acceptance.
+PASS: 6 pinned P04/P05 read-handler compatibility checks with mock DB/HTTP, invalid request400, owner metadata and separate MD5/context hashes. No native/SQL/live/network acceptance.
