@@ -1,0 +1,1 @@
+PASS: P05 synthetic candidate consumed unchanged by pinned P04 normalisePosition; unpriced/missing, no inferred cost/value, commit blocked. No API/DB/Telegram call.

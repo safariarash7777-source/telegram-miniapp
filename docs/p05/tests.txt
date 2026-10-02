@@ -1,0 +1,9 @@
+
+ RUN  v2.1.9 C:/Users/Asus/Documents/ChatGPT/توسعه سایت/telegram-p05-portfolio-20261002
+
+ ✓ server/p05/portfolio-preview.test.ts (100 tests) 30ms
+
+ Test Files  1 passed (1)
+      Tests  100 passed (100)
+   Start at  16:46:11
+   Duration  938ms (transform 94ms, setup 0ms, collect 123ms, tests 30ms, environment 0ms, prepare 280ms)

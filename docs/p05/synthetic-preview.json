@@ -1,0 +1,70 @@
+{
+  "syntheticOnly": true,
+  "proof": "read-only P04 normalizer, not native/Auth/DB acceptance",
+  "preview": {
+    "adapterVersion": "p05-mini-holdings-preview.v0.1",
+    "commitBlocked": true,
+    "blockers": [
+      "P00_P01_P04_runtime_gates",
+      "account_confirmation_receipt_contract_pending",
+      "live_transport_not_implemented"
+    ],
+    "sourceDigest": "1e8d7a9138bf7db06552b2e5130dc15358fbb1f539825c22ff1a8487f0e02307",
+    "baseVersion": 4,
+    "rows": [
+      {
+        "sourceKey": "mini5-synthetic:7",
+        "rowDigest": "09c0678c6a05a4727e2a13477343a6773cc8231549aa1a4b3f5f9ab5b4c7c326",
+        "source": {
+          "id": 7,
+          "telegramId": "synthetic-A",
+          "assetType": "stock",
+          "name": "نمونه ساختگی",
+          "quantity": "12.500000",
+          "buyPrice": "2000.00",
+          "currentPrice": "2200.00",
+          "createdAt": "2026-10-01T00:00:00Z",
+          "updatedAt": "2026-10-02T00:00:00Z"
+        },
+        "state": "ready",
+        "blockers": [],
+        "candidate": {
+          "position_key": "mini:mini5-synthetic:7",
+          "symbol": null,
+          "manual_label": "نمونه ساختگی",
+          "asset_class": "stock",
+          "qty": 12.5,
+          "unit": "سهم",
+          "as_of": "2026-10-02",
+          "ownership_pct": 50,
+          "valuation_mode": "unpriced",
+          "cost_basis": null
+        }
+      }
+    ],
+    "counts": {
+      "source": 1,
+      "ready": 1,
+      "unresolved": 0,
+      "alreadyImported": 0,
+      "conflicts": 0,
+      "canonicalRetained": 1
+    }
+  },
+  "normalizedCandidate": {
+    "position_key": "mini:mini5-synthetic:7",
+    "symbol": null,
+    "manual_label": "نمونه ساختگی",
+    "asset_class": "stock",
+    "qty": 12.5,
+    "unit": "سهم",
+    "as_of": "2026-10-02",
+    "title": null,
+    "ownership_pct": 50,
+    "valuation_mode": "unpriced",
+    "declared_value": null,
+    "valuation_source": null,
+    "valuation_as_of": null,
+    "valuation_status": "missing"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "syntheticOnly": true,
+  "p04Commit": "f58f6f0baea9a24987a7b7a7c4099b5a9d205804",
+  "ownerHashBasis": "authoritative Git blob LF; imported worktree matches after CRLF normalization",
+  "ownerSourceHash": "a3a2bf89963c42e1f2db1c4a53e8279ae6ffe908fe176177d7bcbd093cf5f044",
+  "requests": 6,
+  "nativeAuth": false,
+  "databaseConnected": false,
+  "realHTTP": false,
+  "checks": [
+    "GET full positions/debts owner version",
+    "accepted token/hash createdVersion",
+    "missing receipt unknown",
+    "content conflict preserved",
+    "invalid original positions returns400",
+    "adapter commit blocked and canonical retained"
+  ],
+  "result": {
+    "state": "preview",
+    "commitBlocked": true,
+    "contextDigest": "1eb1de7d17ee823dbe92a7e4b5a4353c805a18eb2c099fb971a985d6bba08c36",
+    "previewDigest": "7cffa0c35f1970de835db9af962a584b1c9cdd4569699ec71733b0f40c2fb7de",
+    "preview": {
+      "adapterVersion": "p05-mini-holdings-preview.v0.1",
+      "commitBlocked": true,
+      "blockers": [
+        "P00_P01_P04_runtime_gates",
+        "account_confirmation_receipt_contract_pending",
+        "live_transport_not_implemented"
+      ],
+      "sourceDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "baseVersion": 4,
+      "rows": [],
+      "counts": {
+        "source": 0,
+        "ready": 0,
+        "unresolved": 0,
+        "alreadyImported": 0,
+        "conflicts": 0,
+        "canonicalRetained": 1
+      }
+    },
+    "receipt": "accepted",
+    "receiptMatched": true,
+    "blockers": [
+      "P00_P01_P04_runtime_gates",
+      "account_confirmation_receipt_contract_pending",
+      "live_transport_not_implemented",
+      "canonical_account_binding_unresolved",
+      "member_confirmation_and_real_receipt_acceptance_open",
+      "legacy_writer_unchanged"
+    ]
+  }
+}
